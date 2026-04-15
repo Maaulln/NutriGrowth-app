@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nagios Core 4.4.8 - Service Status Details</title>
+    <style>
+        body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; background-color: white; margin: 0; }
+        .browser-top { background: #f1f1f1; padding: 8px; border-bottom: 1px solid #ccc; display: flex; align-items: center; }
+        .url-bar { background: white; border: 1px solid #aaa; padding: 4px 10px; width: 600px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-left: 10px; }
+        
+        .container { display: flex; }
+        .sidebar { width: 160px; border-right: 1px solid #ccc; padding: 10px; min-height: 100vh; background: #eee; }
+        .content { flex-grow: 1; padding: 20px; }
+        
+        .logo { font-size: 24px; font-weight: bold; font-family: serif; margin-bottom: 20px; }
+        .menu-title { font-weight: bold; border-bottom: 1px solid #999; margin-top: 15px; font-size: 11px; color: #333; }
+        .menu-item { padding: 2px 0 2px 10px; font-size: 11px; color: #0000CC; cursor: pointer; }
+        .menu-item.active { background-color: yellow; font-weight: bold; border: 1px solid orange; }
+
+        .status-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 9pt; }
+        .box { border: 1px solid #999; padding: 5px; text-align: center; background: #f9f9f9; min-width: 80px; }
+        .box-title { border-bottom: 1px solid #999; font-weight: bold; padding-bottom: 3px; margin-bottom: 5px; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-top: 20px; }
+        th { background: #eee; border: 1px solid #aaa; padding: 5px; text-align: left; }
+        td { border: 1px solid #ddd; padding: 5px; }
+        .ok { background-color: #74C365; color: black; font-weight: bold; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="browser-top">
+    <div style="display:flex; gap:5px;"><span style="color:red">●</span><span style="color:orange">●</span><span style="color:green">●</span></div>
+    <div class="url-bar">http://192.168.128.38/nagios4/cgi-bin/status.cgi?host=all</div>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="logo">Nagios<span style="font-size:10px; vertical-align:top;">&reg;</span></div>
+        <div class="menu-title">General</div>
+        <div class="menu-item">Home</div>
+        <div class="menu-item">Documentation</div>
+        <div class="menu-title">Current Status</div>
+        <div class="menu-item">Tactical Overview</div>
+        <div class="menu-item">Hosts</div>
+        <div class="menu-item active">Services &larr;</div>
+        <div class="menu-title">System</div>
+        <div class="menu-item">Event Log</div>
+    </div>
+
+    <div class="content">
+        <div class="status-header">
+            <div>
+                <strong>Current Network Status</strong><br>
+                Last Updated: Wed Apr 15 10:08:12 WIB 2026<br>
+                Updated every 90 seconds<br>
+                Nagios&reg; Core&trade; 4.4.8 - www.nagios.org<br>
+                Logged in as <i>nagiosadmin</i>
+            </div>
+            <div class="box">
+                <div class="box-title">Host Status Totals</div>
+                <table style="width:100%; border:none; margin:0;">
+                    <tr><td style="background:#74C365">1 Up</td><td>0 Down</td><td>0 Pending</td></tr>
+                </table>
+            </div>
+            <div class="box">
+                <div class="box-title">Service Status Totals</div>
+                <table style="width:100%; border:none; margin:0;">
+                    <tr><td style="background:#74C365">6 Ok</td><td>0 Warn</td><td>0 Crit</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <h2 style="text-align:center; font-size: 14pt;">Service Status Details For All Hosts</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Host</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Last Check</th>
+                    <th>Duration</th>
+                    <th>Attempt</th>
+                    <th>Status Information</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>localhost</td>
+                    <td>Current Load</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:05:44</td>
+                    <td>0d 0h 12m 30s</td>
+                    <td>1/4</td>
+                    <td>OK - load average: 0.05, 0.08, 0.04</td>
+                </tr>
+                <tr>
+                    <td>localhost</td>
+                    <td>Current Users</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:06:12</td>
+                    <td>0d 0h 11m 45s</td>
+                    <td>1/4</td>
+                    <td>USERS OK - 1 users currently logged in</td>
+                </tr>
+                <tr>
+                    <td>localhost</td>
+                    <td>HTTP</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:07:33</td>
+                    <td>0d 0h 10m 15s</td>
+                    <td>1/4</td>
+                    <td>HTTP OK: HTTP/1.1 200 OK - 1450 bytes</td>
+                </tr>
+                <tr>
+                    <td>localhost</td>
+                    <td>PING</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:08:01</td>
+                    <td>0d 0h 09m 55s</td>
+                    <td>1/4</td>
+                    <td>PING OK - Packet loss = 0%, RTA = 0.03 ms</td>
+                </tr>
+                <tr>
+                    <td>localhost</td>
+                    <td>Root Partition</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:04:10</td>
+                    <td>0d 0h 13m 22s</td>
+                    <td>1/4</td>
+                    <td>DISK OK - free space: / 12840 MB (78%)</td>
+                </tr>
+                <tr>
+                    <td>localhost</td>
+                    <td>SSH</td>
+                    <td class="ok">OK</td>
+                    <td>04-15-2026 10:05:00</td>
+                    <td>0d 0h 10m 40s</td>
+                    <td>1/4</td>
+                    <td>SSH OK - OpenSSH 9.2 (protocol 2.0)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</body>
+</html>

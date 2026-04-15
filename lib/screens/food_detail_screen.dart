@@ -1,0 +1,315 @@
+import 'package:flutter/material.dart';
+
+class FoodDetailScreen extends StatelessWidget {
+  final Map<String, String> foodItem;
+
+  const FoodDetailScreen({super.key, required this.foodItem});
+
+  @override
+  Widget build(BuildContext context) {
+    final title = foodItem['title'] ?? 'Food Detail';
+    final subtitle = foodItem['subtitle'] ?? '';
+    final imagePath = foodItem['image'] ?? '';
+    final category = foodItem['category'] ?? 'Balanced';
+    final kcal = foodItem['kcal'] ?? '-';
+    final protein = foodItem['protein'] ?? '-';
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          // 1. Header Image Background
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.of(context).size.height * 0.45,
+            child: imagePath.isNotEmpty
+                ? Image.asset(
+                    imagePath,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: const Color(0xFFE8F5EE),
+                        child: const Icon(
+                          Icons.restaurant_menu,
+                          size: 80,
+                          color: Color(0xFF4CAF82),
+                        ),
+                      );
+                    },
+                  )
+                : Container(
+                    color: const Color(0xFFE8F5EE),
+                    child: const Icon(
+                      Icons.fastfood,
+                      size: 80,
+                      color: Color(0xFF4CAF82),
+                    ),
+                  ),
+          ),
+
+          // 2. Custom Back Button
+          Positioned(
+            top: MediaQuery.of(context).padding.top > 0
+                ? MediaQuery.of(context).padding.top + 8
+                : 40,
+            left: 20,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Color(0xFF1A2E2A),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+
+          // 3. Content overlay using DraggableScrollableSheet or simple Stack
+          Positioned(
+            top:
+                MediaQuery.of(context).size.height * 0.4 -
+                30, // overlapping image
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(
+                  top: 32,
+                  left: 24,
+                  right: 24,
+                  bottom: 40,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Tag Category
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF82).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        category,
+                        style: const TextStyle(
+                          color: Color(0xFF2D7A55),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Title
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Color(0xFF1A2E2A),
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Subtitle
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
+                        fontSize: 14,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Metrics Row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildMetricCard(
+                          Icons.local_fire_department,
+                          "Calories",
+                          kcal,
+                        ),
+                        _buildMetricCard(
+                          Icons.fitness_center,
+                          "Protein",
+                          protein,
+                        ),
+                        _buildMetricCard(
+                          Icons.access_time_rounded,
+                          "Time",
+                          "15 min",
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Ingredients
+                    const Text(
+                      'Ingredients',
+                      style: TextStyle(
+                        color: Color(0xFF1A2E2A),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildListItem('1 portion of main ingredient'),
+                    _buildListItem('2 cups of fresh vegetables'),
+                    _buildListItem('1 tbsp olive oil'),
+                    _buildListItem('A pinch of baby-safe seasoning'),
+                    const SizedBox(height: 24),
+
+                    // Recipe/Instructions
+                    const Text(
+                      'Instructions',
+                      style: TextStyle(
+                        color: Color(0xFF1A2E2A),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStepItem(
+                      '1',
+                      'Wash and prepare all ingredients carefully ensuring they are safe for toddler consumption.',
+                    ),
+                    _buildStepItem(
+                      '2',
+                      'Steam or boil the ingredients until they reach a soft, easily chewable texture.',
+                    ),
+                    _buildStepItem(
+                      '3',
+                      'Mash or cut into tiny bite-sized pieces to prevent any choking hazards.',
+                    ),
+                    _buildStepItem('4', 'Serve at room temperature. Enjoy!'),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricCard(IconData icon, String title, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F7F4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: const Color(0xFF4CAF82), size: 24),
+          const SizedBox(height: 6),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFF6B8F80),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF1A2E2A),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.circle, size: 6, color: Color(0xFF4CAF82)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: Color(0xFF4A6B5D), fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStepItem(String step, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xFF4CAF82).withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                step,
+                style: const TextStyle(
+                  color: Color(0xFF2D7A55),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFF4A6B5D),
+                fontSize: 14,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
