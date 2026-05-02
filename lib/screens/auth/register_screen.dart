@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/services/auth_service.dart';
 import '../main_wrapper.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -12,14 +13,63 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordConfirmController =
+      TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
-  void _register() {
-    // Navigate straight to app for now to simulate login/registration process
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const MainWrapper()),
-      (route) => false,
+  Future<void> _register() async {
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final passwordConfirm = _passwordConfirmController.text;
+
+    if (name.isEmpty || email.isEmpty || password.isEmpty) {
+      _showError('Semua kolom wajib diisi.');
+      return;
+    }
+    if (password != passwordConfirm) {
+      _showError('Konfirmasi password tidak cocok.');
+      return;
+    }
+    if (password.length < 8) {
+      _showError('Password minimal 8 karakter.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await AuthService.instance.register(
+        name: name,
+        email: email,
+        password: password,
+        passwordConfirmation: passwordConfirm,
+      );
+
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MainWrapper()),
+        (route) => false,
+      );
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFE53935),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
     );
   }
 
@@ -28,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _passwordConfirmController.dispose();
     super.dispose();
   }
 
@@ -107,7 +158,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Password Field
               _buildTextField(
                 controller: _passwordController,
-                label: 'Password',
+                label: 'Password (min 8 karakter)',
                 icon: Icons.lock_outline,
                 obscureText: _obscurePassword,
                 suffixIcon: IconButton(
@@ -125,6 +176,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // Confirm Password Field
+              _buildTextField(
+                controller: _passwordConfirmController,
+                label: 'Konfirmasi Password',
+                icon: Icons.lock_outline,
+                obscureText: true,
+              ),
               const SizedBox(height: 40),
 
               // Register Button
@@ -132,19 +192,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _register,
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF82),
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor:
+                        const Color(0xFF4CAF82).withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
                 ),
               ),
               const SizedBox(height: 24),

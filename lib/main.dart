@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'core/services/auth_service.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/main_wrapper.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final isLoggedIn = await AuthService.instance.isLoggedIn();
+  runApp(MyApp(isLoggedIn: isLoggedIn));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isLoggedIn;
+  const MyApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +23,7 @@ class MyApp extends StatelessWidget {
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(),
       ),
-      home: const LoginScreen(),
+      home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
     );
   }
 }
