@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../screens/food_detail_screen.dart';
+import '../../core/models/food_model.dart';
 
 class FoodListItem extends StatelessWidget {
-  final Map<String, String> foodItem;
+  final Food food;
 
-  const FoodListItem({super.key, required this.foodItem});
+  const FoodListItem({super.key, required this.food});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,7 @@ class FoodListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => FoodDetailScreen(foodItem: foodItem),
+            builder: (context) => FoodDetailScreen(food: food),
           ),
         );
       },
@@ -45,19 +46,21 @@ class FoodListItem extends StatelessWidget {
                 width: 100,
                 height: 100,
                 color: const Color(0xFFE8F5EE),
-                child: Image.asset(
-                  foodItem['image'] ?? '',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
-                      Icons.fastfood,
-                      color: Colors.grey,
-                      size: 40,
-                    );
-                  },
-                ),
+                child: food.imageUrl != null
+                    ? Image.network(
+                        food.imageUrl!,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.fastfood,
+                                color: Colors.grey, size: 40),
+                      )
+                    : const Icon(
+                        Icons.fastfood,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
               ),
             ),
             // Details
@@ -72,7 +75,7 @@ class FoodListItem extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          foodItem['title'] ?? '',
+                          food.name,
                           style: const TextStyle(
                             color: Color(0xFF1A2E2A),
                             fontSize: 16,
@@ -81,7 +84,7 @@ class FoodListItem extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          foodItem['subtitle'] ?? '',
+                          food.description ?? '',
                           style: const TextStyle(
                             color: Color(0xFF6B8F80),
                             fontSize: 11,
@@ -95,13 +98,13 @@ class FoodListItem extends StatelessWidget {
                       children: [
                         _buildInfoChip(
                           Icons.local_fire_department,
-                          foodItem['kcal'] ?? '',
+                          '${food.calories.toStringAsFixed(0)} kcal',
                           const Color(0xFFE6912E),
                         ),
                         const SizedBox(width: 12),
                         _buildInfoChip(
                           Icons.fitness_center,
-                          foodItem['protein'] ?? '',
+                          '${food.protein.toStringAsFixed(1)}g',
                           const Color(0xFF4CAF82),
                         ),
                       ],

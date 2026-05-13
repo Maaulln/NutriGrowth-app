@@ -3,7 +3,7 @@ import '../widgets/custom_navbar.dart';
 import 'home_screen.dart';
 import 'analysis_screen.dart';
 import 'food_screen.dart';
-import 'photo_screen.dart';
+import 'children_screen.dart';
 
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
@@ -15,11 +15,11 @@ class MainWrapper extends StatefulWidget {
 class _MainWrapperState extends State<MainWrapper> {
   int _selectedIndex = 0;
 
-  late final List<Widget> _screens = [
+  List<Widget> get _screens => [
     HomeScreen(onNavigate: _onNavigate),
     AnalysisScreen(onNavigate: _onNavigate),
-    FoodScreen(onNavigate: _onNavigate),
-    PhotoScreen(onNavigate: _onNavigate),
+    FoodScreen(onNavigate: _onNavigate, isActive: _selectedIndex == 2),
+    ChildrenScreen(isActive: _selectedIndex == 3),
   ];
 
   void _onNavigate(int index) {

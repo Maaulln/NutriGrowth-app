@@ -6,8 +6,10 @@ class AnalysisForm extends StatelessWidget {
   final TextEditingController weightController;
   final TextEditingController heightController;
   final TextEditingController muacController;
+  final int selectedGender;
+  final ValueChanged<int> onGenderChanged;
   final bool isAnalyzing;
-  final VoidCallback onAnalyze;
+  final Future<void> Function() onAnalyze;
 
   const AnalysisForm({
     super.key,
@@ -15,6 +17,8 @@ class AnalysisForm extends StatelessWidget {
     required this.weightController,
     required this.heightController,
     required this.muacController,
+    required this.selectedGender,
+    required this.onGenderChanged,
     required this.isAnalyzing,
     required this.onAnalyze,
   });
@@ -41,6 +45,27 @@ class AnalysisForm extends StatelessWidget {
         ),
         child: Column(
           children: [
+            DropdownButtonFormField<int>(
+              initialValue: selectedGender,
+              decoration: InputDecoration(
+                labelText: 'Gender',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              items: const [
+                DropdownMenuItem(value: 1, child: Text('Male')),
+                DropdownMenuItem(value: 0, child: Text('Female')),
+              ],
+              onChanged: isAnalyzing
+                  ? null
+                  : (value) {
+                      if (value != null) {
+                        onGenderChanged(value);
+                      }
+                    },
+            ),
+            const SizedBox(height: 16),
             CustomInputField(
               controller: ageController,
               icon: Icons.child_care_rounded,
@@ -78,7 +103,11 @@ class AnalysisForm extends StatelessWidget {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: isAnalyzing ? null : onAnalyze,
+                onPressed: isAnalyzing
+                    ? null
+                    : () async {
+                        await onAnalyze();
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4CAF82),
                   foregroundColor: Colors.white,

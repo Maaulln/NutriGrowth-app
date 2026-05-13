@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../core/models/nutrition_analysis_model.dart';
+import '../core/services/nutrition_ai_service.dart';
+import '../core/services/food_service.dart';
 import '../widgets/analysis/analysis_header.dart';
 import '../widgets/analysis/analysis_info_box.dart';
 import '../widgets/analysis/analysis_form.dart';
@@ -18,6 +21,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _muacController = TextEditingController();
+  int _selectedGender = 1;
 
   bool _isAnalyzing = false;
   String? _analysisStatus;
@@ -33,8 +37,9 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     super.dispose();
   }
 
-  void _analyzeData() {
-    // Basic validation
+  /// Mengirim data input ke API AI untuk mendapatkan hasil analisis gizi.
+  Future<void> _analyzeData() async {
+    // Validasi input dasar sebelum request ke API.
     if (_ageController.text.isEmpty ||
         _weightController.text.isEmpty ||
         _heightController.text.isEmpty ||
@@ -48,49 +53,96 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       return;
     }
 
+    final ageMonths = int.tryParse(_ageController.text.trim());
+    final weightKg = double.tryParse(_weightController.text.trim());
+    final heightCm = double.tryParse(_heightController.text.trim());
+    final muacCm = double.tryParse(_muacController.text.trim());
+
+    if (ageMonths == null ||
+        weightKg == null ||
+        heightCm == null ||
+        muacCm == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter valid numeric values'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isAnalyzing = true;
       _analysisStatus = null;
     });
 
-    // Simulate AI analysis delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
+    try {
+      final request = NutritionAnalysisRequest(
+        ageMonths: ageMonths,
+        gender: _selectedGender,
+        weightKg: weightKg,
+        heightCm: heightCm,
+        muacCm: muacCm,
+      );
 
-      final weight = double.tryParse(_weightController.text) ?? 0;
-      final age = int.tryParse(_ageController.text) ?? 0;
+      final result = await NutritionAiService.instance.analyzeNutrition(
+        request,
+      );
 
-      // Dummy logic for demonstration purposes
-      String status;
-      String recommendation;
-      Color color;
-
-      if (weight < (age * 0.5) + 4) {
-        // Dummy formula for underweight
-        status = 'Needs Attention';
-        color = Colors.orange;
-        recommendation =
-            'Weight is below average for this age. Recommend consulting a pediatrician and increasing protein intake.';
-      } else if (weight > (age * 0.5) + 12) {
-        // Dummy formula for overweight
-        status = 'Overweight';
-        color = Colors.redAccent;
-        recommendation =
-            'Weight is above average. Please monitor diet and encourage active playtime.';
-      } else {
-        status = 'Healthy Growth';
-        color = const Color(0xFF4CAF82);
-        recommendation =
-            'Your child is growing perfectly! Keep up the good work with balanced nutrition.';
+      if (!mounted) {
+        return;
       }
 
       setState(() {
         _isAnalyzing = false;
-        _analysisStatus = status;
-        _analysisRecommendation = recommendation;
-        _statusColor = color;
+        _analysisStatus = result.status;
+        _analysisRecommendation = result.recommendation;
+        _statusColor = _mapStatusColor(result.status);
       });
-    });
+    } on NutritionAiException catch (error) {
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _isAnalyzing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  /// Memetakan label status dari API ke warna visual hasil analisis.
+  Color _mapStatusColor(String status) {
+    final normalized = status.toLowerCase();
+    if (normalized.contains('healthy') || normalized.contains('normal')) {
+      return const Color(0xFF4CAF82);
+    }
+    if (normalized.contains('over') || normalized.contains('obes')) {
+      return Colors.redAccent;
+    }
+    return Colors.orange;
+  }
+
+  /// Memetakan status gizi ke kategori makanan yang disarankan.
+  String? _mapStatusToCategory(String status) {
+    final normalized = status.toLowerCase();
+    if (normalized.contains('severe thinness') ||
+        normalized.contains('thinness')) {
+      return 'Protein';
+    }
+    if (normalized.contains('overweight') || normalized.contains('obesity')) {
+      return 'Vegetable';
+    }
+    if (normalized.contains('healthy') || normalized.contains('normal')) {
+      return 'All';
+    }
+    return 'Protein'; // Default recommendation
   }
 
   @override
@@ -110,6 +162,12 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                 weightController: _weightController,
                 heightController: _heightController,
                 muacController: _muacController,
+                selectedGender: _selectedGender,
+                onGenderChanged: (value) {
+                  setState(() {
+                    _selectedGender = value;
+                  });
+                },
                 isAnalyzing: _isAnalyzing,
                 onAnalyze: _analyzeData,
               ),
@@ -119,6 +177,16 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   status: _analysisStatus!,
                   recommendation: _analysisRecommendation!,
                   color: _statusColor!,
+                  onSeeFood: () {
+                    // Set the pending category based on analysis result
+                    FoodService.instance.pendingCategory = _mapStatusToCategory(
+                      _analysisStatus!,
+                    );
+
+                    if (widget.onNavigate != null) {
+                      widget.onNavigate!(2); // Navigate to Food tab
+                    }
+                  },
                 ),
                 const SizedBox(height: 100), // padding for bottom nav
               ],

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'core/services/auth_service.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
-import 'screens/main_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +22,8 @@ class MyApp extends StatelessWidget {
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(),
       ),
-      home: isLoggedIn ? const MainWrapper() : const LoginScreen(),
+      // Selalu mulai dari halaman auth (Login) saat membuka aplikasi.
+      home: const LoginScreen(),
     );
   }
 }

@@ -54,7 +54,7 @@ class CustomNavBar extends StatelessWidget {
                     const SizedBox(width: 4),
                     _buildNavItem(index: 2, icon: Icons.restaurant_outlined),
                     const SizedBox(width: 4),
-                    _buildNavItem(index: 3, icon: Icons.photo_camera_outlined),
+                    _buildNavItem(index: 3, icon: Icons.child_care_rounded),
                   ],
                 ),
               ),

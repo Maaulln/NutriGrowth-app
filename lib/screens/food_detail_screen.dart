@@ -1,19 +1,13 @@
 import 'package:flutter/material.dart';
+import '../core/models/food_model.dart';
 
 class FoodDetailScreen extends StatelessWidget {
-  final Map<String, String> foodItem;
+  final Food food;
 
-  const FoodDetailScreen({super.key, required this.foodItem});
+  const FoodDetailScreen({super.key, required this.food});
 
   @override
   Widget build(BuildContext context) {
-    final title = foodItem['title'] ?? 'Food Detail';
-    final subtitle = foodItem['subtitle'] ?? '';
-    final imagePath = foodItem['image'] ?? '';
-    final category = foodItem['category'] ?? 'Balanced';
-    final kcal = foodItem['kcal'] ?? '-';
-    final protein = foodItem['protein'] ?? '-';
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -24,9 +18,9 @@ class FoodDetailScreen extends StatelessWidget {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height * 0.45,
-            child: imagePath.isNotEmpty
-                ? Image.asset(
-                    imagePath,
+            child: food.imageUrl != null
+                ? Image.network(
+                    food.imageUrl!,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -80,11 +74,9 @@ class FoodDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // 3. Content overlay using DraggableScrollableSheet or simple Stack
+          // 3. Content overlay
           Positioned(
-            top:
-                MediaQuery.of(context).size.height * 0.4 -
-                30, // overlapping image
+            top: MediaQuery.of(context).size.height * 0.4 - 30,
             left: 0,
             right: 0,
             bottom: 0,
@@ -115,7 +107,7 @@ class FoodDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        category,
+                        food.category.toUpperCase(),
                         style: const TextStyle(
                           color: Color(0xFF2D7A55),
                           fontSize: 12,
@@ -127,7 +119,7 @@ class FoodDetailScreen extends StatelessWidget {
 
                     // Title
                     Text(
-                      title,
+                      food.name,
                       style: const TextStyle(
                         color: Color(0xFF1A2E2A),
                         fontSize: 26,
@@ -137,9 +129,9 @@ class FoodDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
 
-                    // Subtitle
+                    // Description
                     Text(
-                      subtitle,
+                      food.description ?? 'Tidak ada deskripsi tersedia.',
                       style: TextStyle(
                         color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
                         fontSize: 14,
@@ -155,25 +147,25 @@ class FoodDetailScreen extends StatelessWidget {
                         _buildMetricCard(
                           Icons.local_fire_department,
                           "Calories",
-                          kcal,
+                          "${food.calories.toStringAsFixed(0)} kcal",
                         ),
                         _buildMetricCard(
                           Icons.fitness_center,
                           "Protein",
-                          protein,
+                          "${food.protein.toStringAsFixed(1)}g",
                         ),
                         _buildMetricCard(
-                          Icons.access_time_rounded,
-                          "Time",
-                          "15 min",
+                          Icons.shopping_bag_outlined,
+                          "Price",
+                          "Rp ${food.pricePerServing}",
                         ),
                       ],
                     ),
                     const SizedBox(height: 32),
 
-                    // Ingredients
+                    // Nutrition Details
                     const Text(
-                      'Ingredients',
+                      'Nutritional Details',
                       style: TextStyle(
                         color: Color(0xFF1A2E2A),
                         fontSize: 18,
@@ -181,10 +173,9 @@ class FoodDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _buildListItem('1 portion of main ingredient'),
-                    _buildListItem('2 cups of fresh vegetables'),
-                    _buildListItem('1 tbsp olive oil'),
-                    _buildListItem('A pinch of baby-safe seasoning'),
+                    _buildListItem('Serving Size: ${food.servingSize}'),
+                    _buildListItem('Fat: ${food.fat.toStringAsFixed(1)}g'),
+                    _buildListItem('Carbohydrates: ${food.carbs.toStringAsFixed(1)}g'),
                     const SizedBox(height: 24),
 
                     // Recipe/Instructions

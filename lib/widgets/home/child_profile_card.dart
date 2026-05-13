@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
+import '../../core/models/child_model.dart';
 import '../../screens/child_profile_screen.dart';
 import '../metric_card.dart';
 
 class ChildProfileCard extends StatelessWidget {
-  const ChildProfileCard({super.key});
+  final Child child;
+  final VoidCallback? onChildUpdated;
+
+  const ChildProfileCard({super.key, required this.child, this.onChildUpdated});
 
   @override
   Widget build(BuildContext context) {
+    final isMale = child.isMale;
+
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const ChildProfileScreen()),
+          MaterialPageRoute(
+            builder: (context) => ChildProfileScreen(child: child),
+          ),
         );
+        if (result == true) {
+          onChildUpdated?.call();
+        }
       },
       child: Container(
         width: double.infinity,
@@ -36,35 +47,36 @@ class ChildProfileCard extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE8F5EE), Color(0xFFD1E8DD)],
+                    gradient: LinearGradient(
+                      colors: isMale
+                          ? [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)]
+                          : [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Icon(
-                    Icons.child_care_rounded,
+                  child: Icon(
+                    isMale ? Icons.boy_rounded : Icons.girl_rounded,
                     size: 28,
-                    color: Color(0xFF2E8B57),
+                    color: isMale ? Colors.blue : Colors.pink,
                   ),
                 ),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dimas Kechil',
-                        style: TextStyle(
+                        child.name,
+                        style: const TextStyle(
                           color: Color(0xFF1A2E2A),
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: 4),
                       Text(
-                        '18 months old',
+                        child.ageFormatted,
                         style: TextStyle(
                           color: Color(0xFF6B8F80),
                           fontSize: 13,
@@ -112,22 +124,22 @@ class ChildProfileCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24),
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 MetricCard(
                   icon: Icons.monitor_weight_outlined,
-                  value: '10.2',
+                  value: child.weightLabel,
                   label: 'kg',
                 ),
                 MetricCard(
                   icon: Icons.height_rounded,
-                  value: '78.5',
+                  value: child.heightLabel,
                   label: 'cm',
                 ),
                 MetricCard(
                   icon: Icons.accessibility_new_rounded,
-                  value: '13.2',
+                  value: child.muacLabel,
                   label: 'MUAC cm',
                 ),
               ],

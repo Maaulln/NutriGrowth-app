@@ -1,0 +1,94 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-0000-4000-8000-abcdefghijkl",
+    "name": "NutriGrowth API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var json = pm.response.json();",
+              "if (json.token) { pm.environment.set('auth_token', json.token); } else if (json.access_token) { pm.environment.set('auth_token', json.access_token); }",
+              "pm.test('Status is 200', function() { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Children - List",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/children",
+          "host": ["{{base_url}}"],
+          "path": ["api", "children"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function() { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI - Analyze Nutrition",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"child_id\": 1,\n  \"food\": \"Nasi goreng\",\n  \"weight\": 100\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/ai/analyze",
+          "host": ["{{base_url}}"],
+          "path": ["api", "ai", "analyze"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function() { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
+    { "key": "auth_token", "value": "", "type": "string" }
+  ]
+}

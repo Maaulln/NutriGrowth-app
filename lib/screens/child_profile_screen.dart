@@ -1,10 +1,55 @@
 import 'package:flutter/material.dart';
+import '../core/models/child_model.dart';
+import 'add_child_screen.dart';
 
-class ChildProfileScreen extends StatelessWidget {
-  const ChildProfileScreen({super.key});
+class ChildProfileScreen extends StatefulWidget {
+  final Child child;
+  const ChildProfileScreen({super.key, required this.child});
+
+  @override
+  State<ChildProfileScreen> createState() => _ChildProfileScreenState();
+}
+
+class _ChildProfileScreenState extends State<ChildProfileScreen> {
+  late Child _child;
+
+  @override
+  void initState() {
+    super.initState();
+    _child = widget.child;
+  }
+
+  /// Membuka form edit anak lalu memperbarui state lokal jika sukses disimpan.
+  Future<void> _openEditChild() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddChildScreen(initialChild: _child),
+      ),
+    );
+
+    if (!mounted || result is! Child) {
+      return;
+    }
+
+    setState(() {
+      _child = result;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isMale = _child.isMale;
+    final weightText = _child.weightKg == null
+        ? 'Belum tersedia'
+        : '${_child.weightLabel} kg';
+    final heightText = _child.heightCm == null
+        ? 'Belum tersedia'
+        : '${_child.heightLabel} cm';
+    final muacText = _child.muacCm == null
+        ? 'Belum tersedia'
+        : '${_child.muacLabel} cm';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBF9),
       body: SafeArea(
@@ -24,7 +69,7 @@ class ChildProfileScreen extends StatelessWidget {
               Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => Navigator.pop(context, true),
                     child: Container(
                       width: 40,
                       height: 40,
@@ -45,12 +90,22 @@ class ChildProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text(
-                    'Child Profile',
-                    style: TextStyle(
-                      color: Color(0xFF1A2E2A),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
+                  const Expanded(
+                    child: Text(
+                      'Profil Anak',
+                      style: TextStyle(
+                        color: Color(0xFF1A2E2A),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _openEditChild,
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text('Edit'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF2E8B57),
                     ),
                   ),
                 ],
@@ -63,34 +118,38 @@ class ChildProfileScreen extends StatelessWidget {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFE8F5EE), Color(0xFFD1E8DD)],
+                    gradient: LinearGradient(
+                      colors: isMale
+                          ? [const Color(0xFFE3F2FD), const Color(0xFFBBDEFB)]
+                          : [const Color(0xFFFCE4EC), const Color(0xFFF8BBD0)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF4CAF82).withValues(alpha: 0.2),
+                        color: (isMale ? Colors.blue : Colors.pink).withValues(
+                          alpha: 0.2,
+                        ),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: Image.asset( 
-                    'assets/child.png',
-                    width: 60,
-                    height: 60,
+                  child: Icon(
+                    isMale ? Icons.boy : Icons.girl,
+                    size: 60,
+                    color: isMale ? Colors.blue : Colors.pink,
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
               // Name and Age
-              const Center(
+              Center(
                 child: Text(
-                  'Dimas Kechil',
-                  style: TextStyle(
+                  _child.name,
+                  style: const TextStyle(
                     color: Color(0xFF1A2E2A),
                     fontSize: 24,
                     fontWeight: FontWeight.w800,
@@ -98,10 +157,10 @@ class ChildProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Center(
+              Center(
                 child: Text(
-                  '18 months old',
-                  style: TextStyle(
+                  _child.ageFormatted,
+                  style: const TextStyle(
                     color: Color(0xFF6B8F80),
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -124,13 +183,13 @@ class ChildProfileScreen extends StatelessWidget {
               _buildDetailItem(
                 Icons.monitor_weight_outlined,
                 'Weight',
-                '10.2 kg',
+                weightText,
               ),
-              _buildDetailItem(Icons.height_rounded, 'Height', '78.5 cm'),
+              _buildDetailItem(Icons.height_rounded, 'Height', heightText),
               _buildDetailItem(
                 Icons.accessibility_new_rounded,
                 'MUAC',
-                '13.2 cm',
+                muacText,
               ),
               const SizedBox(height: 32),
 
@@ -147,15 +206,37 @@ class ChildProfileScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _buildDetailItem(
                 Icons.calendar_today_rounded,
-                'Date of Birth',
-                '12 Oct 2024',
+                'Tanggal Lahir',
+                '${_child.birthDate.day} ${_getMonthName(_child.birthDate.month)} ${_child.birthDate.year}',
               ),
-              _buildDetailItem(Icons.male_rounded, 'Gender', 'Male'),
+              _buildDetailItem(
+                isMale ? Icons.male_rounded : Icons.female_rounded,
+                'Jenis Kelamin',
+                _child.genderLabel,
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return months[month - 1];
   }
 
   Widget _buildDetailItem(IconData icon, String title, String value) {
