@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/models/nutrition_analysis_model.dart';
+import '../core/services/auth_service.dart';
+import '../core/services/child_service.dart';
 import '../core/services/nutrition_ai_service.dart';
 import '../core/services/food_service.dart';
 import '../widgets/analysis/analysis_header.dart';
@@ -78,12 +80,29 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     });
 
     try {
+      final user = await AuthService.instance.getSavedUser();
+      final childId = await ChildService.instance.getActiveChildId();
+
+      if (user == null || childId == null) {
+        if (!mounted) return;
+        setState(() => _isAnalyzing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pilih profil anak terlebih dahulu.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
       final request = NutritionAnalysisRequest(
         ageMonths: ageMonths,
         gender: _selectedGender,
         weightKg: weightKg,
         heightCm: heightCm,
         muacCm: muacCm,
+        userId: user.id,
+        childId: childId,
       );
 
       final result = await NutritionAiService.instance.analyzeNutrition(

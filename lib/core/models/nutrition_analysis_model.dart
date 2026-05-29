@@ -6,8 +6,8 @@ class NutritionAnalysisRequest {
     required this.weightKg,
     required this.heightCm,
     this.muacCm,
-    this.userId = 1,
-    this.childId = 1,
+    required this.userId,
+    required this.childId,
     this.budgetMin = 0,
     this.budgetMax = 50000,
   });

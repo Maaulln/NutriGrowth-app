@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../models/nutrition_analysis_model.dart';
+import '../models/stunting_assessment_model.dart';
 import 'api_service.dart';
+import 'auth_service.dart';
 
 /// Exception khusus untuk kegagalan komunikasi ke API AI NutriGrowth.
 class NutritionAiException implements Exception {
@@ -13,39 +15,52 @@ class NutritionAiException implements Exception {
   final String message;
 
   @override
-  /// Mengembalikan pesan error agar mudah ditampilkan ke pengguna.
   String toString() => message;
 }
 
-/// Service untuk memanggil endpoint analisis gizi berbasis model AI.
+/// Service untuk analisis gizi anak.
+///
+/// Request dikirim ke Backend Laravel (POST /api/analyze) bukan langsung ke
+/// AI server. Backend yang mengambil food candidates dari Supabase, memanggil
+/// AI, menyimpan hasilnya, lalu mengembalikan response ke app.
 class NutritionAiService {
-  /// Membuat instance service sebagai singleton.
   NutritionAiService._();
 
   static final NutritionAiService _instance = NutritionAiService._();
-
-  /// Getter singleton service analisis gizi.
   static NutritionAiService get instance => _instance;
 
   final http.Client _client = http.Client();
 
-  /// Mengirim data antropometri ke endpoint AI dan mengembalikan hasil analisis.
+  Future<Map<String, String>> _getAuthHeaders() async {
+    final token = await AuthService.instance.getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  /// Mengirim data antropometri ke Backend dan mengembalikan hasil analisis.
   ///
-  /// [request] berisi payload input model yang sudah tervalidasi di UI.
-  /// Return berupa [NutritionAnalysisResult] jika request berhasil.
+  /// Backend akan:
+  ///   1. Mengambil food candidates dari Supabase (filter usia & budget)
+  ///   2. Memanggil AI server dengan food_candidates
+  ///   3. Menyimpan hasil ke DB
+  ///   4. Mengembalikan response AI
   Future<NutritionAnalysisResult> analyzeNutrition(
     NutritionAnalysisRequest request,
   ) async {
-    final uri = ApiService.buildAiUri('/analyze');
+    final uri = Uri.parse('${ApiService.baseUrl}/analyze');
 
     try {
+      final headers = await _getAuthHeaders();
       final response = await _client
           .post(
             uri,
-            headers: ApiService.aiHeaders(),
+            headers: headers,
             body: jsonEncode(request.toJson()),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 30));
 
       final dynamic decodedBody = _decodeResponse(response.body);
 
@@ -59,17 +74,13 @@ class NutritionAiService {
       rethrow;
     } catch (_) {
       throw const NutritionAiException(
-        'Tidak dapat terhubung ke API AI. Pastikan server aktif dan host benar.',
+        'Tidak dapat terhubung ke server. Pastikan koneksi internet aktif.',
       );
     }
   }
 
-  /// Mengubah body respons menjadi object JSON dinamis yang aman diproses.
   dynamic _decodeResponse(String body) {
-    if (body.trim().isEmpty) {
-      return <String, dynamic>{};
-    }
-
+    if (body.trim().isEmpty) return <String, dynamic>{};
     try {
       return jsonDecode(body);
     } catch (_) {
@@ -77,37 +88,46 @@ class NutritionAiService {
     }
   }
 
-  /// Mengekstrak map data utama dari respons agar parsing model konsisten.
+  /// Backend membungkus response AI dalam `{ status, message, data: {...} }`.
+  /// Jika tidak ada wrapper, pakai langsung (kompatibel dengan test UI).
   Map<String, dynamic> _extractResultMap(dynamic decodedBody) {
     if (decodedBody is Map<String, dynamic>) {
-      final nestedData = decodedBody['data'];
-      if (nestedData is Map<String, dynamic>) {
-        return nestedData;
-      }
+      final nested = decodedBody['data'];
+      if (nested is Map<String, dynamic>) return nested;
       return decodedBody;
     }
     return <String, dynamic>{};
   }
 
-  /// Mengambil pesan error paling relevan dari body respons API.
   String _extractErrorMessage(dynamic decodedBody) {
     if (decodedBody is Map<String, dynamic>) {
-      final message = decodedBody['message'];
-      if (message is String && message.trim().isNotEmpty) {
-        return message;
-      }
-
-      final detail = decodedBody['detail'];
-      if (detail is String && detail.trim().isNotEmpty) {
-        return detail;
-      }
-
-      final error = decodedBody['error'];
-      if (error is String && error.trim().isNotEmpty) {
-        return error;
+      for (final key in ['message', 'detail', 'error']) {
+        final val = decodedBody[key];
+        if (val is String && val.trim().isNotEmpty) return val;
       }
     }
-
     return 'Terjadi kesalahan saat memproses analisis gizi.';
+  }
+
+  /// Mengambil assessment terbaru untuk anak tertentu.
+  Future<StuntingAssessmentSummary?> getLatestAssessment(int childId) async {
+    final uri = Uri.parse('${ApiService.baseUrl}/children/$childId/assessments');
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await _client
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = body['data'] as List?;
+        if (list == null || list.isEmpty) return null;
+        return StuntingAssessmentSummary.fromJson(
+          list.first as Map<String, dynamic>,
+        );
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
   }
 }

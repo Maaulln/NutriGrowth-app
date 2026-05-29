@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../core/models/child_model.dart';
+import '../core/models/growth_record_model.dart';
+import '../core/models/stunting_assessment_model.dart';
+import '../core/models/user_model.dart';
+import '../core/services/auth_service.dart';
 import '../core/services/child_service.dart';
+import '../core/services/nutrition_ai_service.dart';
 import '../widgets/home/home_header.dart';
 import '../widgets/home/daily_tip_card.dart';
 import '../widgets/home/child_profile_card.dart';
@@ -18,52 +23,77 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  UserModel? _user;
   Child? _activeChild;
+  List<GrowthRecord> _growthRecords = [];
+  StuntingAssessmentSummary? _latestAssessment;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadActiveChild();
+    _loadData();
   }
 
-  Future<void> _loadActiveChild() async {
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
     try {
-      final children = await ChildService.instance.getChildren();
+      final results = await Future.wait([
+        AuthService.instance.getSavedUser(),
+        ChildService.instance.getChildren(),
+      ]);
+
+      final user = results[0] as UserModel?;
+      final children = results[1] as List<Child>;
+
+      Child? activeChild;
       if (children.isNotEmpty) {
         final activeChildId = await ChildService.instance.getActiveChildId();
-        Child? selectedChild;
         if (activeChildId != null) {
-          for (final item in children) {
-            if (item.id == activeChildId) {
-              selectedChild = item;
+          for (final c in children) {
+            if (c.id == activeChildId) {
+              activeChild = c;
               break;
             }
           }
         }
-        final activeChild = selectedChild ?? children.first;
-
+        activeChild ??= children.first;
         if (activeChild.id != null) {
           await ChildService.instance.setActiveChildId(activeChild.id!);
         }
-
-        setState(() {
-          _activeChild = activeChild;
-          _isLoading = false;
-        });
       } else {
         await ChildService.instance.clearActiveChildId();
-        setState(() => _isLoading = false);
       }
-    } catch (e) {
-      setState(() => _isLoading = false);
+
+      List<GrowthRecord> growthRecords = [];
+      StuntingAssessmentSummary? latestAssessment;
+
+      if (activeChild?.id != null) {
+        final extraResults = await Future.wait([
+          ChildService.instance.getGrowthRecords(activeChild!.id!),
+          NutritionAiService.instance.getLatestAssessment(activeChild.id!),
+        ]);
+        growthRecords = extraResults[0] as List<GrowthRecord>;
+        latestAssessment = extraResults[1] as StuntingAssessmentSummary?;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _user = user;
+        _activeChild = activeChild;
+        _growthRecords = growthRecords;
+        _latestAssessment = latestAssessment;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FBF9), // Lighter, cleaner background
+      backgroundColor: const Color(0xFFF7FBF9),
       body: SafeArea(
         bottom: false,
         child: _isLoading
@@ -81,25 +111,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const HomeHeader(),
+                    HomeHeader(userName: _user?.name),
                     const SizedBox(height: 32),
                     const DailyTipCard(),
                     const SizedBox(height: 32),
                     if (_activeChild != null)
                       ChildProfileCard(
                         child: _activeChild!,
-                        onChildUpdated: _loadActiveChild,
+                        onChildUpdated: _loadData,
                       )
                     else
                       _buildAddChildPrompt(),
                     const SizedBox(height: 32),
-                    const WeightTrendCard(),
+                    WeightTrendCard(records: _growthRecords),
                     const SizedBox(height: 32),
                     const WeeklyNutritionCard(),
                     const SizedBox(height: 32),
                     _buildSectionTitle('LAST CHECK-UP'),
                     const SizedBox(height: 16),
-                    const LastCheckupCard(),
+                    LastCheckupCard(assessment: _latestAssessment),
                     const SizedBox(height: 32),
                   ],
                 ),

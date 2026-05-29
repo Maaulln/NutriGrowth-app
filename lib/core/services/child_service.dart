@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'auth_service.dart';
 import '../models/child_model.dart';
+import '../models/growth_record_model.dart';
 
 class ChildService {
   ChildService._();
@@ -117,6 +118,29 @@ class ChildService {
       }
     } catch (e) {
       throw Exception('Terjadi kesalahan: $e');
+    }
+  }
+
+  /// Mengambil riwayat tumbuh kembang anak (max 6 titik, diurutkan dari terlama).
+  Future<List<GrowthRecord>> getGrowthRecords(int childId) async {
+    final uri = Uri.parse(
+      '${ApiService.baseUrl}/children/$childId/growth-records',
+    );
+    try {
+      final headers = await _getAuthHeaders();
+      final response = await _client
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final list = body['data'] as List? ?? [];
+        return list
+            .map((e) => GrowthRecord.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+      return [];
+    } catch (_) {
+      return [];
     }
   }
 }

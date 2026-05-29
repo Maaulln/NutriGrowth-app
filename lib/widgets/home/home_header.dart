@@ -2,28 +2,42 @@ import 'package:flutter/material.dart';
 import '../notification_button.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  final String? userName;
+
+  const HomeHeader({super.key, this.userName});
+
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Selamat Pagi,';
+    if (hour < 15) return 'Selamat Siang,';
+    if (hour < 18) return 'Selamat Sore,';
+    return 'Selamat Malam,';
+  }
 
   @override
   Widget build(BuildContext context) {
+    final displayName = (userName != null && userName!.isNotEmpty)
+        ? userName!
+        : 'Orang Tua';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Good Morning,',
-              style: TextStyle(
+              _greeting,
+              style: const TextStyle(
                 color: Color(0xFF86A796),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
-              'Parent 👋',
-              style: TextStyle(
+              displayName,
+              style: const TextStyle(
                 color: Color(0xFF1A2E2A),
                 fontSize: 24,
                 fontWeight: FontWeight.w800,

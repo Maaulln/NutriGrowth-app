@@ -23,133 +23,57 @@ class WeeklyNutritionCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Nutrisi Minggu Ini',
-                style: TextStyle(
-                  color: Color(0xFF172720),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+          const Text(
+            'Nutrisi Minggu Ini',
+            style: TextStyle(
+              color: Color(0xFF172720),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Center(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5EE),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.bar_chart_rounded,
+                    size: 32,
+                    color: Color(0xFF4CAF82),
+                  ),
                 ),
-              ),
-              Row(
-                children: const [
-                  Text(
-                    'Lihat semua',
-                    style: TextStyle(
-                      color: Color(0xFF3FAD78),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                    ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Data nutrisi belum tersedia',
+                  style: TextStyle(
+                    color: Color(0xFF172720),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
-                  SizedBox(width: 4),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    size: 14,
-                    color: Color(0xFF3FAD78),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Lakukan analisis gizi secara rutin untuk\nmemantau pemenuhan nutrisi anak.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFF86A796),
+                    fontSize: 11,
+                    height: 1.5,
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          _buildNutritionItem(
-            'Protein',
-            '68%',
-            0.68,
-            Icons.egg_alt_outlined,
-            const Color(0xFF4CAF82),
-          ),
-          const SizedBox(height: 12),
-          _buildNutritionItem(
-            'Kalori',
-            '82%',
-            0.82,
-            Icons.local_fire_department_outlined,
-            const Color(0xFFE6912E),
-          ),
-          const SizedBox(height: 12),
-          _buildNutritionItem(
-            'Zat Besi',
-            '45%',
-            0.45,
-            Icons.water_drop_outlined,
-            const Color(0xFFE76F6F),
-          ),
-          const SizedBox(height: 12),
-          _buildNutritionItem(
-            'Kalsium',
-            '74%',
-            0.74,
-            Icons.settings_suggest_outlined,
-            const Color(0xFF7E57C2),
-          ),
+          const SizedBox(height: 8),
         ],
       ),
-    );
-  }
-
-  Widget _buildNutritionItem(
-    String label,
-    String percentageText,
-    double percentage,
-    IconData icon,
-    Color color,
-  ) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.13),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(child: Icon(icon, color: color, size: 13)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Color(0xFF172720),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  Text(
-                    percentageText,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: LinearProgressIndicator(
-                  value: percentage,
-                  backgroundColor: const Color(0xFFF0F7F4),
-                  valueColor: AlwaysStoppedAnimation<Color>(color),
-                  minHeight: 6,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
