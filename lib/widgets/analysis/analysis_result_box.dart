@@ -15,11 +15,14 @@ class AnalysisResultBox extends StatelessWidget {
     this.onSeeFood,
   });
 
-  /// Menentukan ikon berdasarkan nilai [status] dari API agar lebih fleksibel.
+  /// Menentukan ikon berdasarkan nilai [status] dari API.
   IconData _resolveStatusIcon() {
     final normalized = status.toLowerCase();
-    if (normalized.contains('healthy') || normalized.contains('normal')) {
+    if (normalized.contains('normal') || normalized.contains('tinggi')) {
       return Icons.check_circle_outline;
+    }
+    if (normalized.contains('severely') || normalized.contains('sangat')) {
+      return Icons.error_outline;
     }
     return Icons.warning_amber_rounded;
   }

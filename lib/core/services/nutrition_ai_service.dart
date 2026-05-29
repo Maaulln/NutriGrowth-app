@@ -36,7 +36,7 @@ class NutritionAiService {
   Future<NutritionAnalysisResult> analyzeNutrition(
     NutritionAnalysisRequest request,
   ) async {
-    final uri = ApiService.buildAiUri('/api/v1/nutrition/analyze');
+    final uri = ApiService.buildAiUri('/analyze');
 
     try {
       final response = await _client

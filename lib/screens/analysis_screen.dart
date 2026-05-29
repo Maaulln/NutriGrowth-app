@@ -25,6 +25,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   bool _isAnalyzing = false;
   String? _analysisStatus;
+  String? _rawStatus;
   String? _analysisRecommendation;
   Color? _statusColor;
 
@@ -95,7 +96,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
       setState(() {
         _isAnalyzing = false;
-        _analysisStatus = result.status;
+        _rawStatus = result.status;
+        _analysisStatus = _localizeStatus(result.status);
         _analysisRecommendation = result.recommendation;
         _statusColor = _mapStatusColor(result.status);
       });
@@ -117,32 +119,44 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     }
   }
 
-  /// Memetakan label status dari API ke warna visual hasil analisis.
+  /// Menerjemahkan status gizi dari AI ke label yang ditampilkan di UI.
+  String _localizeStatus(String status) {
+    const labels = <String, String>{
+      'severely stunted': 'Sangat Pendek (Severely Stunted)',
+      'stunted': 'Pendek (Stunted)',
+      'normal': 'Normal',
+      'tinggi': 'Tinggi',
+    };
+    return labels[status.toLowerCase()] ?? status;
+  }
+
+  /// Memetakan status gizi AI ke warna visual hasil analisis.
   Color _mapStatusColor(String status) {
-    final normalized = status.toLowerCase();
-    if (normalized.contains('healthy') || normalized.contains('normal')) {
-      return const Color(0xFF4CAF82);
+    switch (status.toLowerCase()) {
+      case 'normal':
+      case 'tinggi':
+        return const Color(0xFF4CAF82);
+      case 'stunted':
+        return Colors.orange;
+      case 'severely stunted':
+        return Colors.redAccent;
+      default:
+        return Colors.orange;
     }
-    if (normalized.contains('over') || normalized.contains('obes')) {
-      return Colors.redAccent;
-    }
-    return Colors.orange;
   }
 
   /// Memetakan status gizi ke kategori makanan yang disarankan.
   String? _mapStatusToCategory(String status) {
-    final normalized = status.toLowerCase();
-    if (normalized.contains('severe thinness') ||
-        normalized.contains('thinness')) {
-      return 'Protein';
+    switch (status.toLowerCase()) {
+      case 'severely stunted':
+      case 'stunted':
+        return 'Protein';
+      case 'normal':
+      case 'tinggi':
+        return 'All';
+      default:
+        return 'Protein';
     }
-    if (normalized.contains('overweight') || normalized.contains('obesity')) {
-      return 'Vegetable';
-    }
-    if (normalized.contains('healthy') || normalized.contains('normal')) {
-      return 'All';
-    }
-    return 'Protein'; // Default recommendation
   }
 
   @override
@@ -180,7 +194,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
                   onSeeFood: () {
                     // Set the pending category based on analysis result
                     FoodService.instance.pendingCategory = _mapStatusToCategory(
-                      _analysisStatus!,
+                      _rawStatus ?? _analysisStatus!,
                     );
 
                     if (widget.onNavigate != null) {

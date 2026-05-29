@@ -1,90 +1,113 @@
 /// Model request untuk endpoint analisis gizi AI.
 class NutritionAnalysisRequest {
-  /// Membuat payload analisis dari data antropometri anak.
-  ///
-  /// [ageMonths] umur anak dalam bulan.
-  /// [gender] 1 untuk laki-laki, 0 untuk perempuan.
-  /// [weightKg] berat badan dalam kilogram.
-  /// [heightCm] tinggi badan dalam sentimeter.
-  /// [muacCm] lingkar lengan atas (MUAC) dalam sentimeter.
   const NutritionAnalysisRequest({
     required this.ageMonths,
     required this.gender,
     required this.weightKg,
     required this.heightCm,
-    required this.muacCm,
+    this.muacCm,
+    this.userId = 1,
+    this.childId = 1,
+    this.budgetMin = 0,
+    this.budgetMax = 50000,
   });
 
+  /// Usia anak dalam bulan.
   final int ageMonths;
+
+  /// Jenis kelamin: 1 = laki-laki, 0 = perempuan (format UI internal).
   final int gender;
+
   final double weightKg;
   final double heightCm;
-  final double muacCm;
+  final double? muacCm;
+  final int userId;
+  final int childId;
+  final int budgetMin;
+  final int budgetMax;
 
-  /// Mengubah object menjadi JSON body yang siap dikirim ke API.
+  /// Mengubah object menjadi JSON body sesuai schema AI server.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      'age_months': ageMonths,
-      'gender': gender,
+      'user_id': userId,
+      'child_id': childId,
+      'child_age_months': ageMonths,
+      'gender': gender == 1 ? 'male' : 'female',
       'weight_kg': weightKg,
       'height_cm': heightCm,
-      'muac_cm': muacCm,
+      if (muacCm != null) 'muac_cm': muacCm,
+      'budget_min': budgetMin,
+      'budget_max': budgetMax,
     };
   }
 }
 
-/// Model respons hasil analisis gizi AI.
+/// Model respons hasil analisis gizi dari AI server.
 class NutritionAnalysisResult {
-  /// Membuat object hasil analisis yang siap dipakai di UI.
-  ///
-  /// [status] label status pertumbuhan dari API.
-  /// [recommendation] saran lanjutan berdasarkan hasil model.
   const NutritionAnalysisResult({
     required this.status,
     required this.recommendation,
+    required this.riskLevel,
+    required this.riskScore,
+    required this.summary,
+    required this.analysis,
+    required this.warningFlags,
   });
 
+  /// Status gizi: 'normal' | 'stunted' | 'severely stunted' | 'tinggi'
   final String status;
+
+  /// Gabungan treatment_recommendations dari AI sebagai teks UI.
   final String recommendation;
 
-  /// Parsing JSON respons dari API menjadi model yang aman untuk UI.
-  ///
-  /// Method ini mendukung beberapa variasi key umum agar integrasi
-  /// tetap kompatibel meski struktur respons sedikit berbeda.
+  /// Tingkat risiko stunting: 'low' | 'medium' | 'high'
+  final String riskLevel;
+
+  /// Skor risiko 0–100.
+  final int riskScore;
+
+  /// Ringkasan hasil analisis dari AI.
+  final String summary;
+
+  /// Poin-poin analisis detail.
+  final List<String> analysis;
+
+  /// Flag klinis yang terdeteksi.
+  final List<String> warningFlags;
+
+  /// Parsing JSON respons dari `/analyze` AI server.
   factory NutritionAnalysisResult.fromJson(Map<String, dynamic> json) {
-    final dynamic statusValue =
-        json['status'] ?? json['nutrition_status'] ?? json['label'];
+    final statusGizi = json['status_gizi'];
+    final status = statusGizi is String && statusGizi.trim().isNotEmpty
+        ? statusGizi
+        : 'Status tidak tersedia';
 
-    // Prioritaskan 'interpretation' dari API AI baru, atau fallback ke 'recommendation/advice/message'
-    final dynamic primaryAdvice =
-        json['interpretation'] ??
-        json['recommendation'] ??
-        json['advice'] ??
-        json['message'];
-
-    // Tangani list 'recommendations' jika ada
-    String recommendationText = '';
-    if (primaryAdvice is String && primaryAdvice.isNotEmpty) {
-      recommendationText = primaryAdvice;
+    final treatmentList = json['treatment_recommendations'];
+    final String recommendation;
+    if (treatmentList is List && treatmentList.isNotEmpty) {
+      recommendation = '• ${treatmentList.join('\n• ')}';
+    } else {
+      recommendation = 'Rekomendasi tidak tersedia dari server.';
     }
 
-    final dynamic recommendationsList = json['recommendations'];
-    if (recommendationsList is List && recommendationsList.isNotEmpty) {
-      final String joinedRecs = recommendationsList.join('\n• ');
-      if (recommendationText.isNotEmpty) {
-        recommendationText += '\n\nSaran:\n• $joinedRecs';
-      } else {
-        recommendationText = 'Saran:\n• $joinedRecs';
-      }
-    }
+    final analysisList = json['analysis'];
+    final analysis = analysisList is List
+        ? List<String>.from(analysisList.whereType<String>())
+        : <String>[];
+
+    final flagsList = json['warning_flags'];
+    final warningFlags = flagsList is List
+        ? List<String>.from(flagsList.whereType<String>())
+        : <String>[];
 
     return NutritionAnalysisResult(
-      status: statusValue is String && statusValue.trim().isNotEmpty
-          ? statusValue
-          : 'Status tidak tersedia',
-      recommendation: recommendationText.isNotEmpty
-          ? recommendationText
-          : 'Rekomendasi tidak tersedia dari server.',
+      status: status,
+      recommendation: recommendation,
+      riskLevel: json['risk_level'] is String ? json['risk_level'] as String : 'low',
+      riskScore: json['risk_score'] is int ? json['risk_score'] as int : 0,
+      summary: json['summary'] is String ? json['summary'] as String : '',
+      analysis: analysis,
+      warningFlags: warningFlags,
     );
   }
 }
