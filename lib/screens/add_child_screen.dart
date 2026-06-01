@@ -140,9 +140,12 @@ class _AddChildScreenState extends State<AddChildScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        final message = e is Exception
+            ? e.toString().replaceFirst('Exception: ', '')
+            : 'Terjadi kesalahan, silakan coba lagi';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

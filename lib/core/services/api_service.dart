@@ -2,38 +2,42 @@ import 'package:flutter/foundation.dart';
 
 /// Konfigurasi base URL untuk setiap platform.
 ///
-/// Endpoint yang digunakan:
-///   POST   /api/users  → Daftar user baru
-///   GET    /api/users  → List semua user
-///
-/// Platform URL mapping:
-/// - Android Emulator : 10.0.2.2  (localhost dari perspektif emulator)
-/// - iOS Simulator    : localhost
-/// - Web              : localhost
-/// - Device Fisik     : ganti dengan IP mesin Anda, contoh: 192.168.1.10
+/// Untuk production, set URL via --dart-define saat build:
+///   flutter build apk \
+///     --dart-define=NUTRIGROWTH_BACKEND_HOST=https://api.nutrigrowth.com \
+///     --dart-define=NUTRIGROWTH_API_HOST=https://ai.nutrigrowth.com \
+///     --dart-define=API_KEY=your_key_here
 class ApiService {
   ApiService._();
 
+  static const String _backendHostEnv = String.fromEnvironment(
+    'NUTRIGROWTH_BACKEND_HOST',
+  );
   static const String _aiHostEnv = String.fromEnvironment(
     'NUTRIGROWTH_API_HOST',
   );
   static const String _apiKeyEnv = String.fromEnvironment('API_KEY');
 
+  /// Base URL untuk backend (Spring Boot / REST API).
+  ///
+  /// Prioritas:
+  /// 1. --dart-define=NUTRIGROWTH_BACKEND_HOST=https://...
+  /// 2. Fallback lokal (development only)
   static String get baseUrl {
+    if (_backendHostEnv.isNotEmpty) {
+      return '$_backendHostEnv/api';
+    }
     if (kIsWeb) {
       return 'http://localhost:8080/api';
     }
-
-    // Defaulting ke 10.0.2.2 (Android Emulator).
-    // Jika pakai iOS Simulator atau device fisik, ganti nilai ini.
     return 'http://10.0.2.2:8080/api';
   }
 
   /// Base URL untuk endpoint AI NutriGrowth.
   ///
-  /// Prioritas nilai:
-  /// 1. `--dart-define=NUTRIGROWTH_API_HOST=...`
-  /// 2. Default lokal (`localhost` untuk web, `10.0.2.2` untuk emulator Android)
+  /// Prioritas:
+  /// 1. --dart-define=NUTRIGROWTH_API_HOST=https://...
+  /// 2. Fallback lokal (development only)
   static String get aiBaseUrl {
     if (_aiHostEnv.isNotEmpty) {
       return _aiHostEnv;

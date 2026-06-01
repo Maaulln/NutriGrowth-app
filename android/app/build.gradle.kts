@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.nutrigrowt_kuliah"
+    namespace = "com.nutrigrowth.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,10 +19,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.nutrigrowt_kuliah"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.nutrigrowth.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -31,8 +28,8 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Sebelum submit ke Play Store: buat keystore & ganti ke signingConfig release.
+            // Panduan: keytool -genkey -v -keystore nutrigrowth.jks -keyalg RSA -keysize 2048 -validity 10000 -alias nutrigrowth
             signingConfig = signingConfigs.getByName("debug")
         }
     }

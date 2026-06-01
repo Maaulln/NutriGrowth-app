@@ -49,7 +49,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         _muacController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in all fields'),
+          content: Text('Harap isi semua kolom terlebih dahulu'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -67,7 +67,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         muacCm == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please enter valid numeric values'),
+          content: Text('Masukkan angka yang valid pada semua kolom'),
           backgroundColor: Colors.redAccent,
         ),
       );
