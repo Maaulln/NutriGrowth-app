@@ -1,4 +1,4 @@
-package com.example.nutrigrowt_kuliah
+package com.nutrigrowth.app
 
 import io.flutter.embedding.android.FlutterActivity
 
