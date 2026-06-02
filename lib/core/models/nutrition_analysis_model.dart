@@ -42,6 +42,33 @@ class NutritionAnalysisRequest {
   }
 }
 
+/// Satu item rekomendasi makanan dari AI.
+class FoodRecommendationItem {
+  const FoodRecommendationItem({
+    required this.foodName,
+    required this.category,
+    required this.servingSize,
+    required this.estimatedPrice,
+    required this.reason,
+  });
+
+  final String foodName;
+  final String category;
+  final String servingSize;
+  final int estimatedPrice;
+  final String reason;
+
+  factory FoodRecommendationItem.fromJson(Map<String, dynamic> json) {
+    return FoodRecommendationItem(
+      foodName: json['food_name'] as String? ?? '',
+      category: json['category'] as String? ?? '',
+      servingSize: json['serving_size'] as String? ?? '',
+      estimatedPrice: json['estimated_price'] as int? ?? 0,
+      reason: json['reason'] as String? ?? '',
+    );
+  }
+}
+
 /// Model respons hasil analisis gizi dari AI server.
 class NutritionAnalysisResult {
   const NutritionAnalysisResult({
@@ -52,6 +79,8 @@ class NutritionAnalysisResult {
     required this.summary,
     required this.analysis,
     required this.warningFlags,
+    required this.foodSummary,
+    required this.foodItems,
   });
 
   /// Status gizi: 'normal' | 'stunted' | 'severely stunted' | 'tinggi'
@@ -74,6 +103,12 @@ class NutritionAnalysisResult {
 
   /// Flag klinis yang terdeteksi.
   final List<String> warningFlags;
+
+  /// Ringkasan rekomendasi makanan dari AI.
+  final String foodSummary;
+
+  /// Daftar makanan yang direkomendasikan AI.
+  final List<FoodRecommendationItem> foodItems;
 
   /// Parsing JSON respons dari `/analyze` AI server.
   factory NutritionAnalysisResult.fromJson(Map<String, dynamic> json) {
@@ -100,6 +135,14 @@ class NutritionAnalysisResult {
         ? List<String>.from(flagsList.whereType<String>())
         : <String>[];
 
+    final foodItemsList = json['food_items'];
+    final foodItems = foodItemsList is List
+        ? foodItemsList
+            .whereType<Map<String, dynamic>>()
+            .map(FoodRecommendationItem.fromJson)
+            .toList()
+        : <FoodRecommendationItem>[];
+
     return NutritionAnalysisResult(
       status: status,
       recommendation: recommendation,
@@ -108,6 +151,8 @@ class NutritionAnalysisResult {
       summary: json['summary'] is String ? json['summary'] as String : '',
       analysis: analysis,
       warningFlags: warningFlags,
+      foodSummary: json['food_summary'] is String ? json['food_summary'] as String : '',
+      foodItems: foodItems,
     );
   }
 }

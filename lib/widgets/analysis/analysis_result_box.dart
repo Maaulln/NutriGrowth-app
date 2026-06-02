@@ -5,14 +5,11 @@ class AnalysisResultBox extends StatelessWidget {
   final String recommendation;
   final Color color;
 
-  final VoidCallback? onSeeFood;
-
   const AnalysisResultBox({
     super.key,
     required this.status,
     required this.recommendation,
     required this.color,
-    this.onSeeFood,
   });
 
   /// Menentukan ikon berdasarkan nilai [status] dari API.
@@ -84,24 +81,6 @@ class AnalysisResultBox extends StatelessWidget {
                 height: 1.5,
               ),
             ),
-            if (onSeeFood != null) ...[
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onSeeFood,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF82),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text('See Food Recommendations'),
-                ),
-              ),
-            ],
           ],
         ),
       ),

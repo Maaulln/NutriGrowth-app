@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
@@ -144,10 +145,13 @@ class AuthService {
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
-    } catch (_) {
-      throw const AuthException(
-        'Tidak dapat terhubung ke server. Pastikan server sedang berjalan.',
+    } on SocketException catch (e) {
+      throw AuthException(
+        'Tidak dapat terhubung ke server (${ApiService.baseUrl}). '
+        'Pastikan HP dan laptop satu jaringan WiFi. Detail: ${e.message}',
       );
+    } catch (e) {
+      throw AuthException('Error tidak terduga: $e');
     }
   }
 
@@ -189,10 +193,13 @@ class AuthService {
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
-    } catch (_) {
-      throw const AuthException(
-        'Tidak dapat terhubung ke server. Pastikan server sedang berjalan.',
+    } on SocketException catch (e) {
+      throw AuthException(
+        'Tidak dapat terhubung ke server (${ApiService.baseUrl}). '
+        'Pastikan HP dan laptop satu jaringan WiFi. Detail: ${e.message}',
       );
+    } catch (e) {
+      throw AuthException('Error tidak terduga: $e');
     }
   }
 

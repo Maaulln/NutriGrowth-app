@@ -30,7 +30,7 @@ class ApiService {
     if (kIsWeb) {
       return 'http://localhost:8080/api';
     }
-    return 'http://10.0.2.2:8080/api';
+    return 'http://192.168.18.176:8080/api';
   }
 
   /// Base URL untuk endpoint AI NutriGrowth.
@@ -45,7 +45,7 @@ class ApiService {
     if (kIsWeb) {
       return 'http://localhost:8000';
     }
-    return 'http://10.0.2.2:8000';
+    return 'http://192.168.18.176:8000';
   }
 
   /// API key opsional yang dikirim sebagai Bearer token.
