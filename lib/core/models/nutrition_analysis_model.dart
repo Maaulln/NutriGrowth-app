@@ -50,6 +50,7 @@ class FoodRecommendationItem {
     required this.servingSize,
     required this.estimatedPrice,
     required this.reason,
+    this.imageUrl,
   });
 
   final String foodName;
@@ -57,6 +58,7 @@ class FoodRecommendationItem {
   final String servingSize;
   final int estimatedPrice;
   final String reason;
+  final String? imageUrl;
 
   factory FoodRecommendationItem.fromJson(Map<String, dynamic> json) {
     return FoodRecommendationItem(
@@ -65,6 +67,7 @@ class FoodRecommendationItem {
       servingSize: json['serving_size'] as String? ?? '',
       estimatedPrice: json['estimated_price'] as int? ?? 0,
       reason: json['reason'] as String? ?? '',
+      imageUrl: json['image_url'] as String?,
     );
   }
 }

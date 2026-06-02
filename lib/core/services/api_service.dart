@@ -45,7 +45,7 @@ class ApiService {
     if (kIsWeb) {
       return 'http://localhost:8000';
     }
-    return 'http://192.168.18.176:8000';
+    return 'http://13.211.78.15:8000';
   }
 
   /// API key opsional yang dikirim sebagai Bearer token.

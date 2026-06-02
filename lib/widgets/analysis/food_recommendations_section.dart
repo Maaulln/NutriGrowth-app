@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/models/nutrition_analysis_model.dart';
 
@@ -66,7 +67,6 @@ class _FoodRecommendationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -79,86 +79,105 @@ class _FoodRecommendationCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  item.foodName,
-                  style: const TextStyle(
-                    color: Color(0xFF1A2E2A),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4CAF82).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  item.category,
-                  style: const TextStyle(
-                    color: Color(0xFF4CAF82),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
+          // Gambar makanan
+          ClipRRect(
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
+            child: item.imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: item.imageUrl!,
+                    width: 90,
+                    height: 90,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => _imagePlaceholder(),
+                    errorWidget: (context, url, error) => _imagePlaceholder(),
+                  )
+                : _imagePlaceholder(),
           ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              const Icon(
-                Icons.scale_outlined,
-                size: 13,
-                color: Color(0xFF888888),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                item.servingSize,
-                style: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Icon(
-                Icons.payments_outlined,
-                size: 13,
-                color: Color(0xFF888888),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Rp ${_formatPrice(item.estimatedPrice)}',
-                style: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          if (item.reason.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(
-              item.reason,
-              style: TextStyle(
-                color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
-                fontSize: 12,
-                height: 1.4,
-                fontStyle: FontStyle.italic,
+          // Detail makanan
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.foodName,
+                          style: const TextStyle(
+                            color: Color(0xFF1A2E2A),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CAF82).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          item.category,
+                          style: const TextStyle(
+                            color: Color(0xFF4CAF82),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.scale_outlined, size: 12, color: Color(0xFF888888)),
+                      const SizedBox(width: 3),
+                      Text(item.servingSize, style: const TextStyle(color: Color(0xFF888888), fontSize: 11)),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.payments_outlined, size: 12, color: Color(0xFF888888)),
+                      const SizedBox(width: 3),
+                      Text(
+                        'Rp ${_formatPrice(item.estimatedPrice)}',
+                        style: const TextStyle(color: Color(0xFF888888), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                  if (item.reason.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      item.reason,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
+                        fontSize: 11,
+                        height: 1.4,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          ],
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _imagePlaceholder() {
+    return Container(
+      width: 90,
+      height: 90,
+      color: const Color(0xFFE8F5EE),
+      child: const Icon(Icons.restaurant, color: Color(0xFF4CAF82), size: 32),
     );
   }
 
