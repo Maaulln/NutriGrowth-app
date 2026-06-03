@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import '../core/models/child_model.dart';
-import '../core/models/growth_record_model.dart';
-import '../core/models/stunting_assessment_model.dart';
-import '../core/models/user_model.dart';
-import '../core/services/auth_service.dart';
-import '../core/services/child_service.dart';
-import '../core/services/nutrition_ai_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/child_provider.dart';
+import '../core/providers/home_data_provider.dart';
+import '../core/providers/navigation_provider.dart';
 import '../widgets/home/home_header.dart';
 import '../widgets/home/daily_tip_card.dart';
 import '../widgets/home/child_profile_card.dart';
@@ -13,132 +11,141 @@ import '../widgets/home/weight_trend_card.dart';
 import '../widgets/home/weekly_nutrition_card.dart';
 import '../widgets/home/last_checkup_card.dart';
 
-class HomeScreen extends StatefulWidget {
-  final Function(int)? onNavigate;
-
-  const HomeScreen({super.key, this.onNavigate});
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final childrenState = ref.watch(childrenProvider);
+    final activeChild = childrenState.activeChild;
 
-class _HomeScreenState extends State<HomeScreen> {
-  UserModel? _user;
-  Child? _activeChild;
-  List<GrowthRecord> _growthRecords = [];
-  StuntingAssessmentSummary? _latestAssessment;
-  bool _isLoading = true;
+    final homeDataAsync = childrenState.isLoading
+        ? const AsyncValue<HomeScreenData>.loading()
+        : ref.watch(homeDataProvider);
 
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
+    final data = homeDataAsync.valueOrNull;
+    final chartsLoading = homeDataAsync.isLoading;
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    try {
-      final results = await Future.wait([
-        AuthService.instance.getSavedUser(),
-        ChildService.instance.getChildren(),
-      ]);
-
-      final user = results[0] as UserModel?;
-      final children = results[1] as List<Child>;
-
-      Child? activeChild;
-      if (children.isNotEmpty) {
-        final activeChildId = await ChildService.instance.getActiveChildId();
-        if (activeChildId != null) {
-          for (final c in children) {
-            if (c.id == activeChildId) {
-              activeChild = c;
-              break;
-            }
-          }
-        }
-        activeChild ??= children.first;
-        if (activeChild.id != null) {
-          await ChildService.instance.setActiveChildId(activeChild.id!);
-        }
-      } else {
-        await ChildService.instance.clearActiveChildId();
-      }
-
-      List<GrowthRecord> growthRecords = [];
-      StuntingAssessmentSummary? latestAssessment;
-
-      if (activeChild?.id != null) {
-        final extraResults = await Future.wait([
-          ChildService.instance.getGrowthRecords(activeChild!.id!),
-          NutritionAiService.instance.getLatestAssessment(activeChild.id!),
-        ]);
-        growthRecords = extraResults[0] as List<GrowthRecord>;
-        latestAssessment = extraResults[1] as StuntingAssessmentSummary?;
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _user = user;
-        _activeChild = activeChild;
-        _growthRecords = growthRecords;
-        _latestAssessment = latestAssessment;
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FBF9),
       body: SafeArea(
         bottom: false,
-        child: _isLoading
-            ? const Center(
-                child: CircularProgressIndicator(color: Color(0xFF4CAF82)),
-              )
-            : SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 20,
-                  bottom: 100,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HomeHeader(userName: _user?.name),
-                    const SizedBox(height: 32),
-                    const DailyTipCard(),
-                    const SizedBox(height: 32),
-                    if (_activeChild != null)
-                      ChildProfileCard(
-                        child: _activeChild!,
-                        onChildUpdated: _loadData,
-                      )
-                    else
-                      _buildAddChildPrompt(),
-                    const SizedBox(height: 32),
-                    WeightTrendCard(records: _growthRecords),
-                    const SizedBox(height: 32),
-                    const WeeklyNutritionCard(),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('LAST CHECK-UP'),
-                    const SizedBox(height: 16),
-                    LastCheckupCard(assessment: _latestAssessment),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
+        child: RefreshIndicator(
+          color: const Color(0xFF4CAF82),
+          onRefresh: () async {
+            await ref.read(childrenProvider.notifier).refresh();
+            ref.invalidate(homeDataProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 20,
+              bottom: 100,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                HomeHeader(userName: authState.user?.name),
+                const SizedBox(height: 32),
+                const DailyTipCard(),
+                const SizedBox(height: 32),
+                if (childrenState.isLoading)
+                  _buildChildProfileSkeleton()
+                else if (activeChild != null)
+                  ChildProfileCard(
+                    child: activeChild,
+                    onChildUpdated: () async {
+                      await ref.read(childrenProvider.notifier).refresh();
+                      ref.invalidate(homeDataProvider);
+                    },
+                  )
+                else
+                  _buildAddChildPrompt(ref),
+                const SizedBox(height: 32),
+                if (chartsLoading) ...[
+                  const LinearProgressIndicator(
+                    color: Color(0xFF4CAF82),
+                    backgroundColor: Color(0xFFE8F5EE),
+                    minHeight: 2,
+                    borderRadius: BorderRadius.all(Radius.circular(4)),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                WeightTrendCard(records: data?.growthRecords ?? []),
+                const SizedBox(height: 32),
+                WeeklyNutritionCard(assessments: data?.assessments ?? []),
+                const SizedBox(height: 32),
+                _buildSectionTitle('LAST CHECK-UP'),
+                const SizedBox(height: 16),
+                LastCheckupCard(assessment: data?.latestAssessment),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildAddChildPrompt() {
+  Widget _buildChildProfileSkeleton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4CAF82).withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: const Row(
+        children: [
+          CircleAvatar(
+            radius: 32,
+            backgroundColor: Color(0xFFE8F5EE),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 14,
+                  width: 120,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE8F5EE),
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: 12,
+                  width: 80,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFE8F5EE),
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddChildPrompt(WidgetRef ref) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -177,7 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => widget.onNavigate?.call(3),
+            onPressed: () =>
+                ref.read(navigationIndexProvider.notifier).state = 3,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4CAF82),
               shape: RoundedRectangleBorder(

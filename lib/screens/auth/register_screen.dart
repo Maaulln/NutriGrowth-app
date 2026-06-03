@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import '../../core/services/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/child_provider.dart';
 import '../main_wrapper.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _passwordConfirmController =
       TextEditingController();
   bool _obscurePassword = true;
-  bool _isLoading = false;
 
   Future<void> _register() async {
     final name = _nameController.text.trim();
@@ -37,27 +38,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final success = await ref.read(authProvider.notifier).register(
+      name: name,
+      email: email,
+      password: password,
+      passwordConfirmation: passwordConfirm,
+    );
 
-    try {
-      await AuthService.instance.register(
-        name: name,
-        email: email,
-        password: password,
-        passwordConfirmation: passwordConfirm,
-      );
+    if (!mounted) return;
 
+    if (success) {
+      ref.read(childrenProvider.notifier).loadChildren();
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainWrapper()),
         (route) => false,
       );
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      _showError(e.message);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } else {
+      final error = ref.read(authProvider).error;
+      if (error != null) _showError(error);
     }
   }
 
@@ -84,6 +84,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authProvider).isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F7F4),
       body: SafeArea(
@@ -92,7 +94,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Custom Back Button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
@@ -122,7 +123,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
               const Text(
                 'Create an account',
                 style: TextStyle(
@@ -137,16 +137,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(color: Color(0xFF6B8F80), fontSize: 14),
               ),
               const SizedBox(height: 48),
-
-              // Name Field
               _buildTextField(
                 controller: _nameController,
                 label: 'Parent Name',
                 icon: Icons.person_outline,
               ),
               const SizedBox(height: 20),
-
-              // Email Field
               _buildTextField(
                 controller: _emailController,
                 label: 'Email',
@@ -154,8 +150,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
-
-              // Password Field
               _buildTextField(
                 controller: _passwordController,
                 label: 'Password (min 8 karakter)',
@@ -169,16 +163,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     color: const Color(0xFF6B8F80),
                     size: 20,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Confirm Password Field
               _buildTextField(
                 controller: _passwordConfirmController,
                 label: 'Konfirmasi Password',
@@ -186,13 +175,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 obscureText: true,
               ),
               const SizedBox(height: 40),
-
-              // Register Button
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
+                  onPressed: isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF82),
                     foregroundColor: Colors.white,
@@ -203,7 +190,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: _isLoading
+                  child: isLoading
                       ? const SizedBox(
                           width: 22,
                           height: 22,
@@ -220,8 +207,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Login text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -230,9 +215,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: TextStyle(color: Color(0xFF6B8F80), fontSize: 14),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context); // Pop back to login screen
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: const Text(
                       'Login',
                       style: TextStyle(

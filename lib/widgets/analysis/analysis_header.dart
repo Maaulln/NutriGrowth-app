@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/navigation_provider.dart';
 
-class AnalysisHeader extends StatelessWidget {
-  final Function(int)? onNavigate;
-
-  const AnalysisHeader({super.key, this.onNavigate});
+class AnalysisHeader extends ConsumerWidget {
+  const AnalysisHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 20),
       child: Row(
         children: [
           GestureDetector(
-            onTap: () {
-              if (onNavigate != null) {
-                onNavigate!(0); // go to home
-              }
-            },
+            onTap: () =>
+                ref.read(navigationIndexProvider.notifier).state = 0,
             child: Container(
               width: 40,
               height: 40,

@@ -1,43 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/providers/navigation_provider.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/child_provider.dart';
 import '../widgets/custom_navbar.dart';
 import 'home_screen.dart';
 import 'analysis_screen.dart';
 import 'food_screen.dart';
 import 'children_screen.dart';
 
-class MainWrapper extends StatefulWidget {
+class MainWrapper extends ConsumerStatefulWidget {
   const MainWrapper({super.key});
 
   @override
-  State<MainWrapper> createState() => _MainWrapperState();
+  ConsumerState<MainWrapper> createState() => _MainWrapperState();
 }
 
-class _MainWrapperState extends State<MainWrapper> {
-  int _selectedIndex = 0;
+class _MainWrapperState extends ConsumerState<MainWrapper> {
+  late final List<Widget> _screens;
 
-  List<Widget> get _screens => [
-    HomeScreen(onNavigate: _onNavigate),
-    AnalysisScreen(onNavigate: _onNavigate),
-    FoodScreen(onNavigate: _onNavigate, isActive: _selectedIndex == 2),
-    ChildrenScreen(isActive: _selectedIndex == 3),
-  ];
-
-  void _onNavigate(int index) {
-    setState(() {
-      _selectedIndex = index;
+  @override
+  void initState() {
+    super.initState();
+    _screens = const [
+      HomeScreen(),
+      AnalysisScreen(),
+      FoodScreen(),
+      ChildrenScreen(),
+    ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = ref.read(authProvider);
+      if (auth.user == null) {
+        ref.read(authProvider.notifier).loadUser();
+      }
+      ref.read(childrenProvider.notifier).loadChildren();
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(navigationIndexProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F7F4),
       body: Stack(
         children: [
-          _screens[_selectedIndex],
+          IndexedStack(
+            index: selectedIndex,
+            children: _screens,
+          ),
           CustomNavBar(
-            selectedIndex: _selectedIndex,
-            onItemSelected: _onNavigate,
+            selectedIndex: selectedIndex,
+            onItemSelected: (i) =>
+                ref.read(navigationIndexProvider.notifier).state = i,
           ),
         ],
       ),

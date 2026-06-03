@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/models/nutrition_analysis_model.dart';
+import '../../core/services/food_service.dart';
+import '../../screens/food_detail_screen.dart';
 
 class FoodRecommendationsSection extends StatelessWidget {
   const FoodRecommendationsSection({
@@ -58,14 +60,57 @@ class FoodRecommendationsSection extends StatelessWidget {
   }
 }
 
-class _FoodRecommendationCard extends StatelessWidget {
+class _FoodRecommendationCard extends StatefulWidget {
   const _FoodRecommendationCard({required this.item});
-
   final FoodRecommendationItem item;
 
   @override
+  State<_FoodRecommendationCard> createState() => _FoodRecommendationCardState();
+}
+
+class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
+  bool _tapping = false;
+
+  Future<void> _onTap() async {
+    setState(() => _tapping = true);
+    try {
+      final results = await FoodService.instance.getFoods(search: widget.item.foodName);
+      if (!mounted) return;
+      final food = results.isNotEmpty ? results.first : null;
+      if (food != null) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => FoodDetailScreen(food: food)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Detail "${widget.item.foodName}" tidak ditemukan.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal memuat detail makanan.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _tapping = false);
+    }
+  }
+
+  FoodRecommendationItem get item => widget.item;
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: _tapping ? null : _onTap,
+      child: AnimatedOpacity(
+        opacity: _tapping ? 0.6 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -168,6 +213,8 @@ class _FoodRecommendationCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

@@ -1,39 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/providers/food_provider.dart';
 import '../widgets/food/food_header.dart';
 import '../widgets/food/food_search_bar.dart';
 import '../widgets/food/food_category_filters.dart';
 import '../widgets/food/food_list_item.dart';
-import '../core/models/food_model.dart';
-import '../core/services/food_service.dart';
 
-class FoodScreen extends StatefulWidget {
-  final Function(int)? onNavigate;
-  final bool isActive;
-
-  const FoodScreen({super.key, this.onNavigate, this.isActive = false});
+class FoodScreen extends ConsumerStatefulWidget {
+  const FoodScreen({super.key});
 
   @override
-  State<FoodScreen> createState() => _FoodScreenState();
+  ConsumerState<FoodScreen> createState() => _FoodScreenState();
 }
 
-class _FoodScreenState extends State<FoodScreen> {
-  String _selectedFilter = 'All';
-  String _searchQuery = '';
+class _FoodScreenState extends ConsumerState<FoodScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  List<Food> _foods = [];
-  bool _isLoading = true;
-  String? _errorMessage;
-
-  @override
-  void didUpdateWidget(FoodScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !oldWidget.isActive) {
-      _fetchFoods();
-    }
-  }
-
-  final List<String> _filters = [
+  static const List<String> _filters = [
     'All',
     'Protein',
     'Carbo',
@@ -45,36 +28,10 @@ class _FoodScreenState extends State<FoodScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchFoods();
-  }
-
-  Future<void> _fetchFoods() async {
-    // Check if there is a pending category from another screen (e.g. analysis)
-    if (FoodService.instance.pendingCategory != null) {
-      _selectedFilter = FoodService.instance.pendingCategory!;
-      FoodService.instance.pendingCategory = null; // Clear it
-    }
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(foodProvider.notifier).checkPendingCategory();
+      ref.read(foodProvider.notifier).loadFoods();
     });
-
-    try {
-      final foods = await FoodService.instance.getFoods(
-        category: _selectedFilter,
-        search: _searchQuery,
-      );
-      setState(() {
-        _foods = foods;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.toString();
-      });
-    }
   }
 
   @override
@@ -85,38 +42,34 @@ class _FoodScreenState extends State<FoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final foodState = ref.watch(foodProvider);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            FoodHeader(onNavigate: widget.onNavigate),
+            const FoodHeader(),
             const SizedBox(height: 16),
             FoodSearchBar(
               controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-                _fetchFoods(); // Fetch from API on search
-              },
+              onChanged: (value) =>
+                  ref.read(foodProvider.notifier).setSearch(value),
             ),
             const SizedBox(height: 16),
             FoodCategoryFilters(
               filters: _filters,
-              selectedFilter: _selectedFilter,
-              onFilterSelected: (filter) {
-                setState(() => _selectedFilter = filter);
-                _fetchFoods(); // Fetch from API on filter change
-              },
+              selectedFilter: foodState.selectedFilter,
+              onFilterSelected: (filter) =>
+                  ref.read(foodProvider.notifier).setFilter(filter),
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: _isLoading
+              child: foodState.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _errorMessage != null
-                      ? Center(child: Text(_errorMessage!))
+                  : foodState.error != null
+                      ? Center(child: Text(foodState.error!))
                       : ListView.builder(
                           physics: const BouncingScrollPhysics(),
                           padding: const EdgeInsets.only(
@@ -124,9 +77,9 @@ class _FoodScreenState extends State<FoodScreen> {
                             right: 20,
                             bottom: 120,
                           ),
-                          itemCount: _foods.length,
+                          itemCount: foodState.foods.length,
                           itemBuilder: (context, index) {
-                            return FoodListItem(food: _foods[index]);
+                            return FoodListItem(food: foodState.foods[index]);
                           },
                         ),
             ),

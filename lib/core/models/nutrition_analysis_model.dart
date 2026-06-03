@@ -10,14 +10,14 @@ class NutritionAnalysisRequest {
     required this.childId,
     this.budgetMin = 0,
     this.budgetMax = 50000,
+    this.allergies = const [],
+    this.exclusiveBreastfeeding = true,
+    this.supplementIntake = 'irregular',
+    this.illnessFrequency = 'low',
   });
 
-  /// Usia anak dalam bulan.
   final int ageMonths;
-
-  /// Jenis kelamin: 1 = laki-laki, 0 = perempuan (format UI internal).
-  final int gender;
-
+  final int gender; // 1 = male, 0 = female
   final double weightKg;
   final double heightCm;
   final double? muacCm;
@@ -25,8 +25,11 @@ class NutritionAnalysisRequest {
   final int childId;
   final int budgetMin;
   final int budgetMax;
+  final List<String> allergies;
+  final bool exclusiveBreastfeeding;
+  final String supplementIntake;   // 'regular' | 'irregular' | 'none'
+  final String illnessFrequency;   // 'low' | 'medium' | 'high'
 
-  /// Mengubah object menjadi JSON body sesuai schema AI server.
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
       'user_id': userId,
@@ -38,6 +41,12 @@ class NutritionAnalysisRequest {
       if (muacCm != null) 'muac_cm': muacCm,
       'budget_min': budgetMin,
       'budget_max': budgetMax,
+      if (allergies.isNotEmpty) 'allergies': allergies,
+      'nutrition_history': {
+        'exclusive_breastfeeding': exclusiveBreastfeeding,
+        'supplement_intake': supplementIntake,
+        'illness_frequency': illnessFrequency,
+      },
     };
   }
 }

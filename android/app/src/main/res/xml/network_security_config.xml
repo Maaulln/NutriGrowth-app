@@ -8,6 +8,9 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
         <domain includeSubdomains="true">192.168.18.176</domain>
+        <domain includeSubdomains="true">192.168.18.213</domain>
+        <domain includeSubdomains="true">10.253.55.40</domain>
         <domain includeSubdomains="true">13.211.78.15</domain>
+        <domain includeSubdomains="true">192.168.110.230</domain>
     </domain-config>
 </network-security-config>

@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/navigation_provider.dart';
 
-class FoodHeader extends StatelessWidget {
-  final Function(int)? onNavigate;
-
-  const FoodHeader({super.key, this.onNavigate});
+class FoodHeader extends ConsumerWidget {
+  const FoodHeader({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           GestureDetector(
-            onTap: () {
-              if (onNavigate != null) {
-                onNavigate!(0); // back to home
-              }
-            },
+            onTap: () =>
+                ref.read(navigationIndexProvider.notifier).state = 0,
             child: Container(
               width: 36,
               height: 36,

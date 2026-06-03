@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -53,10 +54,12 @@ class AuthService {
   /// [user] berisi data hasil login atau register yang sudah valid.
   Future<void> _saveSession(UserModel user) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, user.token);
-    await prefs.setInt(_userIdKey, user.id);
-    await prefs.setString(_userNameKey, user.name);
-    await prefs.setString(_userEmailKey, user.email);
+    await Future.wait([
+      prefs.setString(_tokenKey, user.token),
+      prefs.setInt(_userIdKey, user.id),
+      prefs.setString(_userNameKey, user.name),
+      prefs.setString(_userEmailKey, user.email),
+    ]);
   }
 
   /// Menghapus seluruh data session yang tersimpan di perangkat.
@@ -145,13 +148,16 @@ class AuthService {
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
-    } on SocketException catch (e) {
-      throw AuthException(
-        'Tidak dapat terhubung ke server (${ApiService.baseUrl}). '
-        'Pastikan HP dan laptop satu jaringan WiFi. Detail: ${e.message}',
+    } on SocketException {
+      throw const AuthException(
+        'Tidak dapat terhubung ke server. Pastikan HP dan laptop satu jaringan WiFi dan backend sedang berjalan.',
+      );
+    } on TimeoutException {
+      throw const AuthException(
+        'Server tidak merespons. Pastikan backend sedang berjalan.',
       );
     } catch (e) {
-      throw AuthException('Error tidak terduga: $e');
+      throw AuthException('Terjadi kesalahan: $e');
     }
   }
 
@@ -193,13 +199,16 @@ class AuthService {
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
-    } on SocketException catch (e) {
-      throw AuthException(
-        'Tidak dapat terhubung ke server (${ApiService.baseUrl}). '
-        'Pastikan HP dan laptop satu jaringan WiFi. Detail: ${e.message}',
+    } on SocketException {
+      throw const AuthException(
+        'Tidak dapat terhubung ke server. Pastikan HP dan laptop satu jaringan WiFi dan backend sedang berjalan.',
+      );
+    } on TimeoutException {
+      throw const AuthException(
+        'Server tidak merespons. Pastikan backend sedang berjalan.',
       );
     } catch (e) {
-      throw AuthException('Error tidak terduga: $e');
+      throw AuthException('Terjadi kesalahan: $e');
     }
   }
 

@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import '../../core/services/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/providers/auth_provider.dart';
+import '../../core/providers/child_provider.dart';
 import '../main_wrapper.dart';
 import 'register_screen.dart';
 import '../waitlist_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _isLoading = false;
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -26,21 +27,23 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    final success = await ref.read(authProvider.notifier).login(
+      email: email,
+      password: password,
+    );
 
-    try {
-      await AuthService.instance.login(email: email, password: password);
+    if (!mounted) return;
 
+    if (success) {
+      ref.read(childrenProvider.notifier).loadChildren();
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainWrapper()),
       );
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      _showError(e.message);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    } else {
+      final error = ref.read(authProvider).error;
+      if (error != null) _showError(error);
     }
   }
 
@@ -65,6 +68,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authProvider).isLoading;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F7F4),
       body: SafeArea(
@@ -74,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 40),
-              // App Logo / Title
               Center(
                 child: Container(
                   width: 80,
@@ -109,8 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 48),
-
-              // Email Field
               _buildTextField(
                 controller: _emailController,
                 label: 'Email',
@@ -118,8 +120,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 20),
-
-              // Password Field
               _buildTextField(
                 controller: _passwordController,
                 label: 'Password',
@@ -133,16 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: const Color(0xFF6B8F80),
                     size: 20,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               const SizedBox(height: 12),
-
-              // Forgot Password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -160,23 +155,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Login Button
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
+                  onPressed: isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF82),
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xFF4CAF82).withValues(alpha: 0.6),
+                    disabledBackgroundColor:
+                        const Color(0xFF4CAF82).withValues(alpha: 0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  child: _isLoading
+                  child: isLoading
                       ? const SizedBox(
                           width: 22,
                           height: 22,
@@ -187,13 +181,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         )
                       : const Text(
                           'Login',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),
               const SizedBox(height: 24),
-
-              // Register text
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -202,14 +195,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(color: Color(0xFF6B8F80), fontSize: 14),
                   ),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RegisterScreen()),
+                    ),
                     child: const Text(
                       'Register',
                       style: TextStyle(
@@ -222,19 +212,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              // Waitlist Banner
               GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WaitlistScreen(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const WaitlistScreen()),
+                ),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 14),
                   decoration: BoxDecoration(
                     color: const Color(0xFF4CAF82).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
@@ -242,15 +229,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: const Color(0xFF4CAF82).withValues(alpha: 0.25),
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person_add_alt_1_rounded,
                         color: Color(0xFF2D6A4F),
                         size: 20,
                       ),
-                      const SizedBox(width: 12),
-                      const Expanded(
+                      SizedBox(width: 12),
+                      Expanded(
                         child: Text(
                           'Belum punya akun? Daftar sekarang!',
                           style: TextStyle(
@@ -260,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: Color(0xFF4CAF82),
                         size: 14,

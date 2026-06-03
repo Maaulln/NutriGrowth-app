@@ -1,29 +1,74 @@
 import 'package:flutter/material.dart';
-import '../core/models/nutrition_analysis_model.dart';
-import '../core/services/auth_service.dart';
-import '../core/services/child_service.dart';
-import '../core/services/nutrition_ai_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../core/models/child_model.dart';
+import '../core/providers/analysis_provider.dart';
+import '../core/providers/auth_provider.dart';
+import '../core/providers/child_provider.dart';
+import '../core/providers/navigation_provider.dart';
 import '../widgets/analysis/analysis_header.dart';
 import '../widgets/analysis/analysis_info_box.dart';
 import '../widgets/analysis/analysis_form.dart';
 import '../widgets/analysis/analysis_result_sheet.dart';
 
-class AnalysisScreen extends StatefulWidget {
-  final Function(int)? onNavigate;
-
-  const AnalysisScreen({super.key, this.onNavigate});
+class AnalysisScreen extends ConsumerStatefulWidget {
+  const AnalysisScreen({super.key});
 
   @override
-  State<AnalysisScreen> createState() => _AnalysisScreenState();
+  ConsumerState<AnalysisScreen> createState() => _AnalysisScreenState();
 }
 
-class _AnalysisScreenState extends State<AnalysisScreen> {
+class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _heightController = TextEditingController();
   final TextEditingController _muacController = TextEditingController();
-  int _selectedGender = 1;
-  bool _isAnalyzing = false;
+  final TextEditingController _allergiesController = TextEditingController();
+
+  int? _lastTemplateChildId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyTemplateFromActiveChild();
+    });
+  }
+
+  /// Mengisi form analisis dari profil anak aktif agar user hanya perlu validasi.
+  void _applyTemplateFromActiveChild() {
+    final child = ref.read(childrenProvider).activeChild;
+    if (child == null || child.id == null) return;
+    if (_lastTemplateChildId == child.id) return;
+
+    _fillFormFromChild(child);
+    _lastTemplateChildId = child.id;
+  }
+
+  void _fillFormFromChild(Child child) {
+    _ageController.text = '${child.ageInMonths}';
+
+    if (child.weightKg != null) {
+      _weightController.text = child.weightKg!.toStringAsFixed(1);
+    } else {
+      _weightController.clear();
+    }
+
+    if (child.heightCm != null) {
+      _heightController.text = child.heightCm!.toStringAsFixed(1);
+    } else {
+      _heightController.clear();
+    }
+
+    if (child.muacCm != null) {
+      _muacController.text = child.muacCm!.toStringAsFixed(1);
+    } else {
+      _muacController.clear();
+    }
+
+    final notifier = ref.read(analysisProvider.notifier);
+    notifier.setGender(child.isMale ? 1 : 0);
+    notifier.setBreastfeeding(child.ageInMonths <= 6);
+  }
 
   @override
   void dispose() {
@@ -31,17 +76,24 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     _weightController.dispose();
     _heightController.dispose();
     _muacController.dispose();
+    _allergiesController.dispose();
     super.dispose();
   }
+
+  List<String> get _allergies => _allergiesController.text
+      .split(',')
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
 
   Future<void> _analyzeData() async {
     if (_ageController.text.isEmpty ||
         _weightController.text.isEmpty ||
-        _heightController.text.isEmpty ||
-        _muacController.text.isEmpty) {
+        _heightController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Harap isi semua kolom terlebih dahulu'),
+          content: Text(
+              'Isi usia, berat badan, dan tinggi badan terlebih dahulu'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -51,67 +103,70 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     final ageMonths = int.tryParse(_ageController.text.trim());
     final weightKg = double.tryParse(_weightController.text.trim());
     final heightCm = double.tryParse(_heightController.text.trim());
-    final muacCm = double.tryParse(_muacController.text.trim());
+    final muacCm = _muacController.text.trim().isNotEmpty
+        ? double.tryParse(_muacController.text.trim())
+        : null;
 
-    if (ageMonths == null || weightKg == null || heightCm == null || muacCm == null) {
+    if (ageMonths == null || weightKg == null || heightCm == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan angka yang valid pada semua kolom'),
+          content: Text('Masukkan angka yang valid'),
           backgroundColor: Colors.redAccent,
         ),
       );
       return;
     }
 
-    setState(() => _isAnalyzing = true);
+    final user = ref.read(authProvider).user;
+    final childId = ref.read(childrenProvider).activeChildId;
 
-    try {
-      final user = await AuthService.instance.getSavedUser();
-      final childId = await ChildService.instance.getActiveChildId();
-
-      if (user == null || childId == null) {
-        if (!mounted) return;
-        setState(() => _isAnalyzing = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pilih profil anak terlebih dahulu.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-
-      final result = await NutritionAiService.instance.analyzeNutrition(
-        NutritionAnalysisRequest(
-          ageMonths: ageMonths,
-          gender: _selectedGender,
-          weightKg: weightKg,
-          heightCm: heightCm,
-          muacCm: muacCm,
-          userId: user.id,
-          childId: childId,
+    if (user == null || childId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih profil anak terlebih dahulu.'),
+          backgroundColor: Colors.orange,
         ),
       );
+      return;
+    }
 
-      if (!mounted) return;
-      setState(() => _isAnalyzing = false);
+    final result = await ref.read(analysisProvider.notifier).analyze(
+      ageMonths: ageMonths,
+      userId: user.id,
+      childId: childId,
+      weightKg: weightKg,
+      heightCm: heightCm,
+      muacCm: muacCm,
+      allergies: _allergies,
+    );
 
+    if (!mounted) return;
+
+    final analysisState = ref.read(analysisProvider);
+    if (analysisState.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(analysisState.error!),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    if (result != null) {
       AnalysisResultSheet.show(
         context,
         status: _localizeStatus(result.status),
         recommendation: result.recommendation,
         color: _mapStatusColor(result.status),
+        riskLevel: result.riskLevel,
+        riskScore: result.riskScore,
+        summary: result.summary,
+        analysis: result.analysis,
+        warningFlags: result.warningFlags,
         foodSummary: result.foodSummary,
         foodItems: result.foodItems,
-      );
-    } on NutritionAiException catch (error) {
-      if (!mounted) return;
-      setState(() => _isAnalyzing = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.message),
-          backgroundColor: Colors.redAccent,
-        ),
       );
     }
   }
@@ -142,6 +197,28 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final analysisState = ref.watch(analysisProvider);
+    final childrenState = ref.watch(childrenProvider);
+    final activeChild = childrenState.activeChild;
+
+    ref.listen<ChildrenState>(childrenProvider, (previous, next) {
+      final activeIdChanged = previous?.activeChildId != next.activeChildId;
+      final childrenJustLoaded =
+          (previous?.children.isEmpty ?? true) && next.children.isNotEmpty;
+
+      if (activeIdChanged || childrenJustLoaded) {
+        _lastTemplateChildId = null;
+        _applyTemplateFromActiveChild();
+      }
+    });
+
+    ref.listen<int>(navigationIndexProvider, (previous, next) {
+      if (next == 1 && previous != 1) {
+        _lastTemplateChildId = null;
+        _applyTemplateFromActiveChild();
+      }
+    });
+
     return Scaffold(
       backgroundColor: const Color(0xFFF0F7F4),
       body: SafeArea(
@@ -149,17 +226,28 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              AnalysisHeader(onNavigate: widget.onNavigate),
-              const AnalysisInfoBox(),
+              const AnalysisHeader(),
+              AnalysisInfoBox(childName: activeChild?.name),
               const SizedBox(height: 24),
               AnalysisForm(
                 ageController: _ageController,
                 weightController: _weightController,
                 heightController: _heightController,
                 muacController: _muacController,
-                selectedGender: _selectedGender,
-                onGenderChanged: (value) => setState(() => _selectedGender = value),
-                isAnalyzing: _isAnalyzing,
+                allergiesController: _allergiesController,
+                selectedGender: analysisState.selectedGender,
+                onGenderChanged: (v) =>
+                    ref.read(analysisProvider.notifier).setGender(v),
+                exclusiveBreastfeeding: analysisState.exclusiveBreastfeeding,
+                onBreastfeedingChanged: (v) =>
+                    ref.read(analysisProvider.notifier).setBreastfeeding(v),
+                supplementIntake: analysisState.supplementIntake,
+                onSupplementChanged: (v) =>
+                    ref.read(analysisProvider.notifier).setSupplement(v),
+                illnessFrequency: analysisState.illnessFrequency,
+                onIllnessChanged: (v) =>
+                    ref.read(analysisProvider.notifier).setIllness(v),
+                isAnalyzing: analysisState.isAnalyzing,
                 onAnalyze: _analyzeData,
               ),
               const SizedBox(height: 20),

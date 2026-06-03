@@ -1,12 +1,43 @@
 import 'package:flutter/material.dart';
+import '../core/models/notification_model.dart';
+import '../core/services/notification_service.dart';
 
-class NotificationButton extends StatelessWidget {
+class NotificationButton extends StatefulWidget {
   const NotificationButton({super.key});
+
+  @override
+  State<NotificationButton> createState() => _NotificationButtonState();
+}
+
+class _NotificationButtonState extends State<NotificationButton> {
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final result = await NotificationService.instance.fetchNotifications();
+      if (mounted) setState(() => _unreadCount = result.unreadCount);
+    } catch (_) {}
+  }
+
+  Future<void> _showNotifications() async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => _NotificationSheet(onRead: _loadUnreadCount),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showNotifications(context),
+      onTap: _showNotifications,
       child: Container(
         width: 48,
         height: 48,
@@ -29,140 +60,204 @@ class NotificationButton extends StatelessWidget {
               size: 24,
               color: Color(0xFF1A2E2A),
             ),
-            Positioned(
-              top: 12,
-              right: 14,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
+            if (_unreadCount > 0)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B6B),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1.5),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _showNotifications(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Handle bar
-            Center(
-              child: Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 20),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // Title
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Notifications',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A2E2A),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Mark all as read',
-                      style: TextStyle(
-                        color: Color(0xFF4CAF82),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            // List
-            Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 8,
-                ),
-                children: [
-                  _buildNotificationItem(
-                    icon: Icons.restaurant_menu_rounded,
-                    title: 'Meal Time!',
-                    message:
-                        'Don\'t forget to log your child\'s lunch for accurate tracking.',
-                    time: '10 mins ago',
-                    isUnread: true,
-                  ),
-                  _buildNotificationItem(
-                    icon: Icons.analytics_outlined,
-                    title: 'Weekly Report',
-                    message:
-                        'Your child\'s nutritional growth report for this week is ready.',
-                    time: '2 hours ago',
-                    isUnread: true,
-                  ),
-                  _buildNotificationItem(
-                    icon: Icons.monitor_weight_outlined,
-                    title: 'Check-up Reminder',
-                    message: 'It\'s time to update Aisha\'s weight and height.',
-                    time: '1 day ago',
-                    isUnread: false,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+class _NotificationSheet extends StatefulWidget {
+  const _NotificationSheet({required this.onRead});
+  final VoidCallback onRead;
+
+  @override
+  State<_NotificationSheet> createState() => _NotificationSheetState();
+}
+
+class _NotificationSheetState extends State<_NotificationSheet> {
+  bool _loading = true;
+  List<AppNotification> _notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
   }
 
-  Widget _buildNotificationItem({
-    required IconData icon,
-    required String title,
-    required String message,
-    required String time,
-    required bool isUnread,
-  }) {
+  Future<void> _load() async {
+    try {
+      final result = await NotificationService.instance.fetchNotifications();
+      if (mounted) {
+        setState(() {
+          _notifications = result.notifications;
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _markAllRead() async {
+    await NotificationService.instance.markAllRead();
+    setState(() {
+      _notifications = _notifications
+          .map((n) => AppNotification(
+                id: n.id,
+                type: n.type,
+                title: n.title,
+                message: n.message,
+                isRead: true,
+                createdAt: n.createdAt,
+              ))
+          .toList();
+    });
+    widget.onRead();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Notifikasi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A2E2A),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _markAllRead,
+                  child: const Text(
+                    'Tandai semua dibaca',
+                    style: TextStyle(
+                      color: Color(0xFF4CAF82),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(child: _buildBody()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_loading) {
+      return const Center(
+        child: CircularProgressIndicator(color: Color(0xFF4CAF82)),
+      );
+    }
+    if (_notifications.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 12),
+            Text(
+              'Belum ada notifikasi',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView.builder(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      itemCount: _notifications.length,
+      itemBuilder: (_, i) => _NotificationItem(notification: _notifications[i]),
+    );
+  }
+}
+
+class _NotificationItem extends StatelessWidget {
+  const _NotificationItem({required this.notification});
+  final AppNotification notification;
+
+  IconData _icon() {
+    switch (notification.type) {
+      case 'stunting_alert':
+        return Icons.warning_amber_rounded;
+      case 'analysis_done':
+        return Icons.analytics_outlined;
+      default:
+        return Icons.notifications_outlined;
+    }
+  }
+
+  Color _iconColor() {
+    return notification.type == 'stunting_alert'
+        ? Colors.orange
+        : const Color(0xFF4CAF82);
+  }
+
+  String _timeAgo() {
+    final diff = DateTime.now().difference(notification.createdAt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
+    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
+    return '${diff.inDays} hari lalu';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isUnread
-            ? const Color(0xFF4CAF82).withValues(alpha: 0.05)
-            : Colors.white,
+        color: notification.isRead
+            ? Colors.white
+            : const Color(0xFF4CAF82).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isUnread
-              ? const Color(0xFF4CAF82).withValues(alpha: 0.3)
-              : Colors.grey.shade200,
+          color: notification.isRead
+              ? Colors.grey.shade200
+              : const Color(0xFF4CAF82).withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -171,12 +266,12 @@ class NotificationButton extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF4CAF82).withValues(alpha: 0.1),
+              color: _iconColor().withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: const Color(0xFF4CAF82), size: 20),
+            child: Icon(_icon(), color: _iconColor(), size: 20),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,28 +279,28 @@ class NotificationButton extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                        color: Color(0xFF1A2E2A),
+                    Expanded(
+                      child: Text(
+                        notification.title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: Color(0xFF1A2E2A),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade600,
-                      ),
+                      _timeAgo(),
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
-                  message,
+                  notification.message,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: Colors.grey.shade700,
                     height: 1.4,
                   ),
@@ -213,12 +308,12 @@ class NotificationButton extends StatelessWidget {
               ],
             ),
           ),
-          if (isUnread) ...[
-            const SizedBox(width: 12),
+          if (!notification.isRead) ...[
+            const SizedBox(width: 8),
             Container(
               width: 8,
               height: 8,
-              margin: const EdgeInsets.only(top: 6),
+              margin: const EdgeInsets.only(top: 4),
               decoration: const BoxDecoration(
                 color: Color(0xFFFF6B6B),
                 shape: BoxShape.circle,

@@ -30,14 +30,18 @@ class ApiService {
     if (kIsWeb) {
       return 'http://localhost:8080/api';
     }
-    return 'http://192.168.18.176:8080/api';
+    return 'http://192.168.110.230:8080/api';
   }
+
+  /// Path endpoint analisis gizi di AI service lokal (nutrigrowth-ai).
+  static const String nutritionAnalyzePath = '/analyze';
 
   /// Base URL untuk endpoint AI NutriGrowth.
   ///
   /// Prioritas:
   /// 1. --dart-define=NUTRIGROWTH_API_HOST=https://...
-  /// 2. Fallback lokal (development only)
+  /// 2. Web: localhost:8000
+  /// 3. Mobile dev: host yang sama dengan backend, port 8000
   static String get aiBaseUrl {
     if (_aiHostEnv.isNotEmpty) {
       return _aiHostEnv;
@@ -45,7 +49,12 @@ class ApiService {
     if (kIsWeb) {
       return 'http://localhost:8000';
     }
-    return 'http://13.211.78.15:8000';
+    final backendUri = Uri.parse(baseUrl);
+    return Uri(
+      scheme: backendUri.scheme,
+      host: backendUri.host,
+      port: 8000,
+    ).toString();
   }
 
   /// API key opsional yang dikirim sebagai Bearer token.

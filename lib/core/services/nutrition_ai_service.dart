@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -20,9 +22,7 @@ class NutritionAiException implements Exception {
 
 /// Service untuk analisis gizi anak.
 ///
-/// Request dikirim ke Backend Laravel (POST /api/analyze) bukan langsung ke
-/// AI server. Backend yang mengambil food candidates dari Supabase, memanggil
-/// AI, menyimpan hasilnya, lalu mengembalikan response ke app.
+/// Request dikirim langsung ke local AI server (nutrigrowth-ai, port 8000).
 class NutritionAiService {
   NutritionAiService._();
 
@@ -40,24 +40,17 @@ class NutritionAiService {
     };
   }
 
-  /// Mengirim data antropometri ke Backend dan mengembalikan hasil analisis.
-  ///
-  /// Backend akan:
-  ///   1. Mengambil food candidates dari Supabase (filter usia & budget)
-  ///   2. Memanggil AI server dengan food_candidates
-  ///   3. Menyimpan hasil ke DB
-  ///   4. Mengembalikan response AI
+  /// Mengirim data antropometri langsung ke local AI server (nutrigrowth-ai).
   Future<NutritionAnalysisResult> analyzeNutrition(
     NutritionAnalysisRequest request,
   ) async {
-    final uri = Uri.parse('${ApiService.baseUrl}/analyze');
+    final uri = ApiService.buildAiUri(ApiService.nutritionAnalyzePath);
 
     try {
-      final headers = await _getAuthHeaders();
       final response = await _client
           .post(
             uri,
-            headers: headers,
+            headers: ApiService.aiHeaders(withAuth: false),
             body: jsonEncode(request.toJson()),
           )
           .timeout(const Duration(seconds: 30));
@@ -72,9 +65,17 @@ class NutritionAiService {
       throw NutritionAiException(_extractErrorMessage(decodedBody));
     } on NutritionAiException {
       rethrow;
+    } on SocketException {
+      throw const NutritionAiException(
+        'Tidak dapat terhubung ke server AI. Pastikan HP dan laptop satu jaringan WiFi dan server AI (port 8000) sedang berjalan.',
+      );
+    } on TimeoutException {
+      throw const NutritionAiException(
+        'Server AI tidak merespons. Pastikan nutrigrowth-ai sedang berjalan.',
+      );
     } catch (_) {
       throw const NutritionAiException(
-        'Tidak dapat terhubung ke server. Pastikan koneksi internet aktif.',
+        'Tidak dapat terhubung ke server AI. Pastikan server AI berjalan di port 8000.',
       );
     }
   }
@@ -111,6 +112,12 @@ class NutritionAiService {
 
   /// Mengambil assessment terbaru untuk anak tertentu.
   Future<StuntingAssessmentSummary?> getLatestAssessment(int childId) async {
+    final assessments = await getAllAssessments(childId);
+    return assessments.isNotEmpty ? assessments.first : null;
+  }
+
+  /// Mengambil semua riwayat assessment untuk anak tertentu (urut terlama → terbaru).
+  Future<List<StuntingAssessmentSummary>> getAllAssessments(int childId) async {
     final uri = Uri.parse('${ApiService.baseUrl}/children/$childId/assessments');
     try {
       final headers = await _getAuthHeaders();
@@ -119,15 +126,17 @@ class NutritionAiService {
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final list = body['data'] as List?;
-        if (list == null || list.isEmpty) return null;
-        return StuntingAssessmentSummary.fromJson(
-          list.first as Map<String, dynamic>,
-        );
+        final list = body['data'] as List? ?? [];
+        final assessments = list
+            .whereType<Map<String, dynamic>>()
+            .map(StuntingAssessmentSummary.fromJson)
+            .toList();
+        // Backend returns newest-first; reverse agar grafik terlama → terbaru
+        return assessments.reversed.toList();
       }
-      return null;
+      return [];
     } catch (_) {
-      return null;
+      return [];
     }
   }
 }

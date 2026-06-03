@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'core/services/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final isLoggedIn = await AuthService.instance.isLoggedIn();
-  runApp(MyApp(isLoggedIn: isLoggedIn));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  final bool isLoggedIn;
-  const MyApp({super.key, required this.isLoggedIn});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +20,6 @@ class MyApp extends StatelessWidget {
       scrollBehavior: const MaterialScrollBehavior().copyWith(
         physics: const BouncingScrollPhysics(),
       ),
-      // Selalu mulai dari halaman auth (Login) saat membuka aplikasi.
       home: const LoginScreen(),
     );
   }
