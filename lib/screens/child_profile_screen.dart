@@ -41,13 +41,13 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
   Widget build(BuildContext context) {
     final isMale = _child.isMale;
     final weightText = _child.weightKg == null
-        ? 'Belum tersedia'
+        ? 'Not available'
         : '${_child.weightLabel} kg';
     final heightText = _child.heightCm == null
-        ? 'Belum tersedia'
+        ? 'Not available'
         : '${_child.heightLabel} cm';
     final muacText = _child.muacCm == null
-        ? 'Belum tersedia'
+        ? 'Not available'
         : '${_child.muacLabel} cm';
 
     return Scaffold(
@@ -92,7 +92,7 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
                   const SizedBox(width: 16),
                   const Expanded(
                     child: Text(
-                      'Profil Anak',
+                      'Child Profile',
                       style: TextStyle(
                         color: Color(0xFF1A2E2A),
                         fontSize: 20,
@@ -206,12 +206,12 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
               const SizedBox(height: 16),
               _buildDetailItem(
                 Icons.calendar_today_rounded,
-                'Tanggal Lahir',
+                'Date of Birth',
                 '${_child.birthDate.day} ${_getMonthName(_child.birthDate.month)} ${_child.birthDate.year}',
               ),
               _buildDetailItem(
                 isMale ? Icons.male_rounded : Icons.female_rounded,
-                'Jenis Kelamin',
+                'Gender',
                 _child.genderLabel,
               ),
             ],
@@ -227,14 +227,14 @@ class _ChildProfileScreenState extends State<ChildProfileScreen> {
       'Feb',
       'Mar',
       'Apr',
-      'Mei',
+      'May',
       'Jun',
       'Jul',
-      'Agu',
+      'Aug',
       'Sep',
-      'Okt',
+      'Oct',
       'Nov',
-      'Des',
+      'Dec',
     ];
     return months[month - 1];
   }

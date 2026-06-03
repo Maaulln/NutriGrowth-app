@@ -158,7 +158,7 @@ class _NotificationSheetState extends State<_NotificationSheet> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Notifikasi',
+                  'Notifications',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -168,7 +168,7 @@ class _NotificationSheetState extends State<_NotificationSheet> {
                 TextButton(
                   onPressed: _markAllRead,
                   child: const Text(
-                    'Tandai semua dibaca',
+                    'Mark all as read',
                     style: TextStyle(
                       color: Color(0xFF4CAF82),
                       fontSize: 13,
@@ -200,7 +200,7 @@ class _NotificationSheetState extends State<_NotificationSheet> {
             Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey.shade300),
             const SizedBox(height: 12),
             Text(
-              'Belum ada notifikasi',
+              'No notifications yet',
               style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
             ),
           ],
@@ -239,9 +239,9 @@ class _NotificationItem extends StatelessWidget {
 
   String _timeAgo() {
     final diff = DateTime.now().difference(notification.createdAt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes} menit lalu';
-    if (diff.inHours < 24) return '${diff.inHours} jam lalu';
-    return '${diff.inDays} hari lalu';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 
   @override

@@ -8,17 +8,17 @@ class HomeHeader extends StatelessWidget {
 
   String get _greeting {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Selamat Pagi,';
-    if (hour < 15) return 'Selamat Siang,';
-    if (hour < 18) return 'Selamat Sore,';
-    return 'Selamat Malam,';
+    if (hour < 12) return 'Good morning,';
+    if (hour < 15) return 'Good afternoon,';
+    if (hour < 18) return 'Good evening,';
+    return 'Good night,';
   }
 
   @override
   Widget build(BuildContext context) {
     final displayName = (userName != null && userName!.isNotEmpty)
         ? userName!
-        : 'Orang Tua';
+        : 'Parent';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,

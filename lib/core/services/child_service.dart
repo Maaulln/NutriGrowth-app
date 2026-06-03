@@ -54,10 +54,10 @@ class ChildService {
         final List data = jsonResponse['data'];
         return data.map((child) => Child.fromJson(child)).toList();
       } else {
-        throw Exception('Gagal mengambil data anak');
+        throw Exception('Failed to fetch child data');
       }
     } catch (e) {
-      throw Exception('Terjadi kesalahan: $e');
+      throw Exception('An error occurred: $e');
     }
   }
 
@@ -77,10 +77,10 @@ class ChildService {
         return Child.fromJson(jsonResponse['data']);
       } else {
         final error = jsonDecode(response.body);
-        throw Exception(error['message'] ?? 'Gagal menambahkan data anak');
+        throw Exception(error['message'] ?? 'Failed to add child data');
       }
     } catch (e) {
-      throw Exception('Terjadi kesalahan: $e');
+      throw Exception('An error occurred: $e');
     }
   }
 
@@ -99,10 +99,10 @@ class ChildService {
         final jsonResponse = jsonDecode(response.body);
         return Child.fromJson(jsonResponse['data']);
       } else {
-        throw Exception('Gagal memperbarui data anak');
+        throw Exception('Failed to update child data');
       }
     } catch (e) {
-      throw Exception('Terjadi kesalahan: $e');
+      throw Exception('An error occurred: $e');
     }
   }
 
@@ -114,10 +114,10 @@ class ChildService {
       final response = await _client.delete(uri, headers: headers);
 
       if (response.statusCode != 200) {
-        throw Exception('Gagal menghapus data anak');
+        throw Exception('Failed to delete child data');
       }
     } catch (e) {
-      throw Exception('Terjadi kesalahan: $e');
+      throw Exception('An error occurred: $e');
     }
   }
 

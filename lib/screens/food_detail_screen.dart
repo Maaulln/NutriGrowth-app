@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/models/food_model.dart';
+import '../widgets/food/food_network_image.dart';
 
 class FoodDetailScreen extends StatelessWidget {
   final Food food;
@@ -18,29 +19,14 @@ class FoodDetailScreen extends StatelessWidget {
             left: 0,
             right: 0,
             height: MediaQuery.of(context).size.height * 0.45,
-            child: food.imageUrl != null
-                ? Image.network(
-                    food.imageUrl!,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: const Color(0xFFE8F5EE),
-                        child: const Icon(
-                          Icons.restaurant_menu,
-                          size: 80,
-                          color: Color(0xFF4CAF82),
-                        ),
-                      );
-                    },
-                  )
-                : Container(
-                    color: const Color(0xFFE8F5EE),
-                    child: const Icon(
-                      Icons.fastfood,
-                      size: 80,
-                      color: Color(0xFF4CAF82),
-                    ),
-                  ),
+            child: FoodNetworkImage(
+              imageUrl: food.effectiveImageUrl,
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.45,
+              fit: BoxFit.cover,
+              placeholderIcon: Icons.restaurant_menu,
+              placeholderIconSize: 80,
+            ),
           ),
 
           // 2. Custom Back Button
@@ -131,7 +117,7 @@ class FoodDetailScreen extends StatelessWidget {
 
                     // Description
                     Text(
-                      food.description ?? 'Tidak ada deskripsi tersedia.',
+                      food.description ?? 'No description available.',
                       style: TextStyle(
                         color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
                         fontSize: 14,
@@ -157,7 +143,7 @@ class FoodDetailScreen extends StatelessWidget {
                         _buildMetricCard(
                           Icons.shopping_bag_outlined,
                           "Price",
-                          "Rp ${food.pricePerServing}",
+                          "IDR ${food.pricePerServing}",
                         ),
                       ],
                     ),

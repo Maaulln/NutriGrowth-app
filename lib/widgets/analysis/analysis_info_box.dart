@@ -9,8 +9,8 @@ class AnalysisInfoBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = childName != null && childName!.trim().isNotEmpty
-        ? 'Data dari profil $childName sudah diisi otomatis. Periksa dan sesuaikan jika perlu, lalu ketuk Analisis Sekarang.'
-        : 'Pilih profil anak di menu Anak terlebih dahulu. Setelah itu data pengukuran akan terisi otomatis untuk Anda validasi.';
+        ? 'Data from $childName\'s profile was filled automatically. Review and adjust if needed, then tap Analyze Now.'
+        : 'Select a child profile in the Children tab first. Measurement fields will then auto-fill for you to verify.';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),

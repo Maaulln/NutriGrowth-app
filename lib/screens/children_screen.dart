@@ -16,7 +16,7 @@ class ChildrenScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFFF8FAF9),
       appBar: AppBar(
         title: const Text(
-          'Profil Anak',
+          'Child Profile',
           style: TextStyle(
             color: Color(0xFF1A2E2A),
             fontWeight: FontWeight.bold,
@@ -59,7 +59,7 @@ class ChildrenScreen extends ConsumerWidget {
                       ElevatedButton(
                         onPressed: () =>
                             ref.read(childrenProvider.notifier).loadChildren(),
-                        child: const Text('Coba Lagi'),
+                        child: const Text('Try Again'),
                       ),
                     ],
                   ),
@@ -73,7 +73,7 @@ class ChildrenScreen extends ConsumerWidget {
                               size: 80, color: Colors.grey[300]),
                           const SizedBox(height: 16),
                           const Text(
-                            'Belum ada data anak',
+                            'No child data yet',
                             style:
                                 TextStyle(color: Colors.grey, fontSize: 16),
                           ),
@@ -99,7 +99,7 @@ class ChildrenScreen extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text('Tambah Anak Pertama'),
+                            child: const Text('Add First Child'),
                           ),
                         ],
                       ),
@@ -202,7 +202,7 @@ class ChildrenScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: const Text(
-                        'Anak Aktif',
+                        'Active Child',
                         style: TextStyle(
                           color: Color(0xFF2E8B57),
                           fontSize: 12,
@@ -224,7 +224,7 @@ class ChildrenScreen extends ConsumerWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content:
-                          Text('${child.name} dipilih sebagai anak aktif.'),
+                          Text('${child.name} selected as active child.'),
                       backgroundColor: const Color(0xFF2E8B57),
                     ),
                   );
@@ -240,8 +240,8 @@ class ChildrenScreen extends ConsumerWidget {
                     : Colors.grey,
               ),
               tooltip: isActiveChild
-                  ? 'Sudah menjadi anak aktif'
-                  : 'Pilih sebagai anak aktif',
+                  ? 'Already the active child'
+                  : 'Set as active child',
             ),
             IconButton(
               onPressed: () async {

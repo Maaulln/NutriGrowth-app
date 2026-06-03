@@ -93,7 +93,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-              'Isi usia, berat badan, dan tinggi badan terlebih dahulu'),
+              'Please fill in age, weight, and height first'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -110,7 +110,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     if (ageMonths == null || weightKg == null || heightCm == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Masukkan angka yang valid'),
+          content: Text('Enter valid numbers'),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -124,7 +124,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Pilih profil anak terlebih dahulu.'),
+          content: Text('Select a child profile first.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -157,7 +157,7 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     if (result != null) {
       AnalysisResultSheet.show(
         context,
-        status: _localizeStatus(result.status),
+        status: _formatStatus(result.status),
         recommendation: result.recommendation,
         color: _mapStatusColor(result.status),
         riskLevel: result.riskLevel,
@@ -171,12 +171,12 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
     }
   }
 
-  String _localizeStatus(String status) {
+  String _formatStatus(String status) {
     const labels = <String, String>{
-      'severely stunted': 'Sangat Pendek (Severely Stunted)',
-      'stunted': 'Pendek (Stunted)',
+      'severely stunted': 'Severely Stunted',
+      'stunted': 'Stunted',
       'normal': 'Normal',
-      'tinggi': 'Tinggi',
+      'tinggi': 'Tall',
     };
     return labels[status.toLowerCase()] ?? status;
   }

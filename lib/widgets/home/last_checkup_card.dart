@@ -34,7 +34,7 @@ class LastCheckupCard extends StatelessWidget {
           Icon(Icons.assignment_outlined, size: 40, color: Color(0xFFB0C9BF)),
           SizedBox(height: 12),
           Text(
-            'Belum ada pemeriksaan',
+            'No check-ups yet',
             style: TextStyle(
               color: Color(0xFF1A2E2A),
               fontSize: 14,
@@ -43,7 +43,7 @@ class LastCheckupCard extends StatelessWidget {
           ),
           SizedBox(height: 6),
           Text(
-            'Lakukan analisis gizi untuk melihat hasil pemeriksaan.',
+            'Run a nutrition analysis to see check-up results.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xFF86A796), fontSize: 12),
           ),
@@ -55,8 +55,8 @@ class LastCheckupCard extends StatelessWidget {
   Widget _buildDataState(StuntingAssessmentSummary data) {
     final date = data.createdAt;
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
     final dateLabel = '${date.day} ${months[date.month - 1]} ${date.year}';
     final progress = (data.riskScore.clamp(0, 100)) / 100.0;

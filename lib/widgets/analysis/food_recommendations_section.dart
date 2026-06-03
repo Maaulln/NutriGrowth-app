@@ -32,7 +32,7 @@ class FoodRecommendationsSection extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               const Text(
-                'Rekomendasi Makanan AI',
+                'AI Food Recommendations',
                 style: TextStyle(
                   color: Color(0xFF1A2E2A),
                   fontSize: 16,
@@ -85,7 +85,7 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Detail "${widget.item.foodName}" tidak ditemukan.'),
+            content: Text('Details for "${widget.item.foodName}" not found.'),
             backgroundColor: Colors.orange,
           ),
         );
@@ -93,7 +93,7 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gagal memuat detail makanan.')),
+          const SnackBar(content: Text('Failed to load food details.')),
         );
       }
     } finally {
@@ -130,16 +130,14 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
           // Gambar makanan
           ClipRRect(
             borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
-            child: item.imageUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: item.imageUrl!,
-                    width: 90,
-                    height: 90,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => _imagePlaceholder(),
-                    errorWidget: (context, url, error) => _imagePlaceholder(),
-                  )
-                : _imagePlaceholder(),
+            child: CachedNetworkImage(
+              imageUrl: item.effectiveImageUrl,
+              width: 90,
+              height: 90,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => _imagePlaceholder(),
+              errorWidget: (context, url, error) => _imagePlaceholder(),
+            ),
           ),
           // Detail makanan
           Expanded(
@@ -189,7 +187,7 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
                       const Icon(Icons.payments_outlined, size: 12, color: Color(0xFF888888)),
                       const SizedBox(width: 3),
                       Text(
-                        'Rp ${_formatPrice(item.estimatedPrice)}',
+                        'IDR ${_formatPrice(item.estimatedPrice)}',
                         style: const TextStyle(color: Color(0xFF888888), fontSize: 11),
                       ),
                     ],

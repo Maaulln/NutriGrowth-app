@@ -34,7 +34,7 @@ class WeeklyNutritionCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Tren Risiko Stunting',
+          'Stunting Risk Trend',
           style: TextStyle(
             color: Color(0xFF172720),
             fontSize: 13,
@@ -59,7 +59,7 @@ class WeeklyNutritionCard extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               const Text(
-                'Data belum tersedia',
+                'Data not available yet',
                 style: TextStyle(
                   color: Color(0xFF172720),
                   fontSize: 13,
@@ -68,7 +68,7 @@ class WeeklyNutritionCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Lakukan minimal 2 analisis gizi untuk\nmelihat tren risiko stunting anak.',
+                'Run at least 2 nutrition analyses to\nsee your child\'s stunting risk trend.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFF86A796),
@@ -93,12 +93,12 @@ class WeeklyNutritionCard extends StatelessWidget {
     final trendColor = diff <= 0
         ? const Color(0xFF3FAD78)   // membaik
         : const Color(0xFFE76F6F);  // memburuk
-    final trendLabel = '$sign${diff.toStringAsFixed(0)} poin';
+    final trendLabel = '$sign${diff.toStringAsFixed(0)} pts';
 
     final labels = assessments.map((a) {
       const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-        'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ];
       return '${months[a.createdAt.month - 1]} ${a.createdAt.day}';
     }).toList();
@@ -113,7 +113,7 @@ class WeeklyNutritionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tren Risiko Stunting',
+                  'Stunting Risk Trend',
                   style: TextStyle(
                     color: Color(0xFF172720),
                     fontSize: 13,
@@ -122,7 +122,7 @@ class WeeklyNutritionCard extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Skor risiko 0–100 per analisis',
+                  'Risk score 0–100 per analysis',
                   style: TextStyle(
                     color: Color(0xFF6B8F80),
                     fontSize: 11,
@@ -193,15 +193,15 @@ class WeeklyNutritionCard extends StatelessWidget {
     switch (assessment.riskLevel) {
       case 'high':
         color = const Color(0xFFE76F6F);
-        label = 'Risiko Tinggi';
+        label = 'High Risk';
         break;
       case 'medium':
         color = Colors.orange;
-        label = 'Risiko Sedang';
+        label = 'Medium Risk';
         break;
       default:
         color = const Color(0xFF3FAD78);
-        label = 'Risiko Rendah';
+        label = 'Low Risk';
     }
     return Row(
       children: [
@@ -212,7 +212,7 @@ class WeeklyNutritionCard extends StatelessWidget {
         ),
         const SizedBox(width: 6),
         Text(
-          'Skor terbaru: ${assessment.riskScore} — $label',
+          'Latest score: ${assessment.riskScore} — $label',
           style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500),
         ),
       ],

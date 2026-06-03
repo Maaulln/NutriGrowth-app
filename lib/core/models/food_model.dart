@@ -1,3 +1,5 @@
+import '../utils/food_image_helper.dart';
+
 class Food {
   final int id;
   final String name;
@@ -25,11 +27,20 @@ class Food {
     this.imageUrl,
   });
 
+  /// URL gambar efektif (backend atau fallback Unsplash).
+  String get effectiveImageUrl => FoodImageHelper.resolveImageUrl(
+        imageUrl: imageUrl,
+        name: name,
+        category: category,
+      );
+
   factory Food.fromJson(Map<String, dynamic> json) {
+    final name = json['name'] as String;
+    final category = json['category'] as String;
     return Food(
       id: json['id'],
-      name: json['name'],
-      category: json['category'],
+      name: name,
+      category: category,
       calories: (json['calories'] as num).toDouble(),
       protein: (json['protein'] as num).toDouble(),
       fat: (json['fat'] as num).toDouble(),
@@ -37,7 +48,11 @@ class Food {
       pricePerServing: json['price_per_serving'],
       servingSize: json['serving_size'],
       description: json['description'],
-      imageUrl: json['image_url'],
+      imageUrl: FoodImageHelper.resolveImageUrl(
+        imageUrl: json['image_url'] as String?,
+        name: name,
+        category: category,
+      ),
     );
   }
 

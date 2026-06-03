@@ -23,7 +23,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
-      _showError('Email dan password wajib diisi.');
+      _showError('Email and password are required.');
       return;
     }
 
@@ -239,7 +239,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Belum punya akun? Daftar sekarang!',
+                          'Don\'t have an account? Register now!',
                           style: TextStyle(
                             color: Color(0xFF2D6A4F),
                             fontSize: 13,

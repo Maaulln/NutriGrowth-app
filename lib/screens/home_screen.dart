@@ -169,7 +169,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Belum ada data anak',
+            'No child data yet',
             style: TextStyle(
               color: Color(0xFF1A2E2A),
               fontSize: 16,
@@ -178,7 +178,7 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Tambah profil anak untuk mulai memantau tumbuh kembangnya.',
+            'Add a child profile to start monitoring growth.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Color(0xFF6B8F80), fontSize: 13),
           ),
@@ -192,7 +192,7 @@ class HomeScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text('Tambah Anak'),
+            child: const Text('Add Child'),
           ),
         ],
       ),

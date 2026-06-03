@@ -144,20 +144,20 @@ class AuthService {
       final errorMsg =
           json['error'] as String? ??
           json['message'] as String? ??
-          'Terjadi kesalahan pada server.';
+          'A server error occurred.';
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
     } on SocketException {
       throw const AuthException(
-        'Tidak dapat terhubung ke server. Pastikan HP dan laptop satu jaringan WiFi dan backend sedang berjalan.',
+        'Cannot connect to server. Ensure your phone and laptop are on the same WiFi network and the backend is running.',
       );
     } on TimeoutException {
       throw const AuthException(
-        'Server tidak merespons. Pastikan backend sedang berjalan.',
+        'Server is not responding. Ensure the backend is running.',
       );
     } catch (e) {
-      throw AuthException('Terjadi kesalahan: $e');
+      throw AuthException('An error occurred: $e');
     }
   }
 
@@ -195,20 +195,20 @@ class AuthService {
       final errorMsg =
           json['error'] as String? ??
           json['message'] as String? ??
-          'Terjadi kesalahan pada server.';
+          'A server error occurred.';
       throw AuthException(errorMsg);
     } on AuthException {
       rethrow;
     } on SocketException {
       throw const AuthException(
-        'Tidak dapat terhubung ke server. Pastikan HP dan laptop satu jaringan WiFi dan backend sedang berjalan.',
+        'Cannot connect to server. Ensure your phone and laptop are on the same WiFi network and the backend is running.',
       );
     } on TimeoutException {
       throw const AuthException(
-        'Server tidak merespons. Pastikan backend sedang berjalan.',
+        'Server is not responding. Ensure the backend is running.',
       );
     } catch (e) {
-      throw AuthException('Terjadi kesalahan: $e');
+      throw AuthException('An error occurred: $e');
     }
   }
 

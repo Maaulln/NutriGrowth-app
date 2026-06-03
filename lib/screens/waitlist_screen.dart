@@ -148,7 +148,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
         const SizedBox(height: 24),
         Center(
           child: Text(
-            'Daftar Akun',
+            'Create Account',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -159,7 +159,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
         const SizedBox(height: 8),
         Center(
           child: Text(
-            'Buat akun NutriGrowth dan mulai pantau\nnutrisi si kecil hari ini.',
+            'Create a NutriGrowth account and start tracking\nyour little one\'s nutrition today.',
             textAlign: TextAlign.center,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
@@ -177,22 +177,22 @@ class _WaitlistScreenState extends State<WaitlistScreen>
             children: [
               _buildField(
                 controller: _nameController,
-                label: 'Nama Lengkap',
+                label: 'Full Name',
                 icon: Icons.person_outline_rounded,
                 keyboardType: TextInputType.name,
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Nama tidak boleh kosong' : null,
+                    (v == null || v.trim().isEmpty) ? 'Name cannot be empty' : null,
               ),
               const SizedBox(height: 16),
               _buildField(
                 controller: _emailController,
-                label: 'Alamat Email',
+                label: 'Email Address',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Email tidak boleh kosong';
+                  if (v == null || v.trim().isEmpty) return 'Email cannot be empty';
                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
-                    return 'Format email tidak valid';
+                    return 'Invalid email format';
                   }
                   return null;
                 },
@@ -264,7 +264,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
                             const Icon(Icons.send_rounded, size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              'Daftar Sekarang',
+                              'Register Now',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -294,7 +294,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
                 Icon(Icons.lock_outline_rounded, color: _green, size: 14),
                 const SizedBox(width: 6),
                 Text(
-                  'Data Anda aman & tidak disebarkan',
+                  'Your data is safe and will not be shared',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: _darkGreen,
@@ -337,7 +337,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
         ),
         const SizedBox(height: 32),
         Text(
-          'Pendaftaran Berhasil! 🎉',
+          'Registration Successful! 🎉',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 24,
             fontWeight: FontWeight.w700,
@@ -347,7 +347,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
         ),
         const SizedBox(height: 12),
         Text(
-          'Selamat, ${_nameController.text.trim()}!\nAkun Anda berhasil dibuat.\nCek email ${_emailController.text.trim()}\nuntuk konfirmasi.',
+          'Congratulations, ${_nameController.text.trim()}!\nYour account has been created.\nCheck ${_emailController.text.trim()}\nfor confirmation.',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
             color: _textMid,
@@ -363,7 +363,7 @@ class _WaitlistScreenState extends State<WaitlistScreen>
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
             label: Text(
-              'Kembali ke Beranda',
+              'Back to Home',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,

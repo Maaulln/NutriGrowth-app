@@ -34,7 +34,7 @@ class WeightTrendCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tren Berat Badan',
+          'Weight Trend',
           style: TextStyle(
             color: Color(0xFF172720),
             fontSize: 13,
@@ -48,7 +48,7 @@ class WeightTrendCard extends StatelessWidget {
               Icon(Icons.show_chart_rounded, size: 40, color: Color(0xFFB0C9BF)),
               SizedBox(height: 8),
               Text(
-                'Belum ada data tren berat badan.',
+                'No weight trend data yet.',
                 style: TextStyle(color: Color(0xFF86A796), fontSize: 12),
                 textAlign: TextAlign.center,
               ),
@@ -79,8 +79,8 @@ class WeightTrendCard extends StatelessWidget {
     final labels = records
         .where((r) => r.weightKg != null)
         .map((r) {
-          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-              'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           return months[r.recordedAt.month - 1];
         })
         .toList();
@@ -95,7 +95,7 @@ class WeightTrendCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Tren Berat Badan',
+                  'Weight Trend',
                   style: TextStyle(
                     color: Color(0xFF172720),
                     fontSize: 13,
@@ -104,7 +104,7 @@ class WeightTrendCard extends StatelessWidget {
                 ),
                 SizedBox(height: 2),
                 Text(
-                  'Riwayat pemeriksaan',
+                  'Check-up history',
                   style: TextStyle(
                     color: Color(0xFF6B8F80),
                     fontSize: 11,

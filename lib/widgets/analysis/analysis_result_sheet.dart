@@ -85,11 +85,11 @@ class AnalysisResultSheet extends StatelessWidget {
   String _riskLabel() {
     switch (riskLevel.toLowerCase()) {
       case 'high':
-        return 'Risiko Tinggi';
+        return 'High Risk';
       case 'medium':
-        return 'Risiko Sedang';
+        return 'Medium Risk';
       default:
-        return 'Risiko Rendah';
+        return 'Low Risk';
     }
   }
 
@@ -125,7 +125,7 @@ class AnalysisResultSheet extends StatelessWidget {
                 child: Row(
                   children: [
                     const Text(
-                      'Hasil Analisis',
+                      'Analysis Results',
                       style: TextStyle(
                         color: Color(0xFF1A2E2A),
                         fontSize: 18,
@@ -206,7 +206,7 @@ class AnalysisResultSheet extends StatelessWidget {
                           Row(
                             children: [
                               Text(
-                                'Skor Risiko: $riskScore / 100',
+                                'Risk Score: $riskScore / 100',
                                 style: TextStyle(
                                   color: const Color(0xFF1A2E2A).withValues(alpha: 0.6),
                                   fontSize: 12,
@@ -257,7 +257,7 @@ class AnalysisResultSheet extends StatelessWidget {
                                 Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 16),
                                 SizedBox(width: 6),
                                 Text(
-                                  'Perhatian Klinis',
+                                  'Clinical Attention',
                                   style: TextStyle(
                                     color: Colors.orange,
                                     fontSize: 13,
@@ -310,7 +310,7 @@ class AnalysisResultSheet extends StatelessWidget {
                                 Icon(Icons.analytics_outlined, color: Color(0xFF4CAF82), size: 16),
                                 SizedBox(width: 6),
                                 Text(
-                                  'Detail Analisis',
+                                  'Analysis Details',
                                   style: TextStyle(
                                     color: Color(0xFF1A2E2A),
                                     fontSize: 13,
@@ -362,7 +362,7 @@ class AnalysisResultSheet extends StatelessWidget {
                               Icon(Icons.medical_services_outlined, color: Color(0xFF4CAF82), size: 16),
                               SizedBox(width: 6),
                               Text(
-                                'Rekomendasi Treatment',
+                                'Treatment Recommendations',
                                 style: TextStyle(
                                   color: Color(0xFF1A2E2A),
                                   fontSize: 13,

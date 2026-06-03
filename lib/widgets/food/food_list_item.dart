@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../screens/food_detail_screen.dart';
 import '../../core/models/food_model.dart';
+import 'food_network_image.dart';
 
 class FoodListItem extends StatelessWidget {
   final Food food;
@@ -38,29 +39,12 @@ class FoodListItem extends StatelessWidget {
         child: Row(
           children: [
             // Image
-            ClipRRect(
+            FoodNetworkImage(
+              imageUrl: food.effectiveImageUrl,
+              width: 100,
+              height: 100,
               borderRadius: const BorderRadius.horizontal(
                 left: Radius.circular(20),
-              ),
-              child: Container(
-                width: 100,
-                height: 100,
-                color: const Color(0xFFE8F5EE),
-                child: food.imageUrl != null
-                    ? Image.network(
-                        food.imageUrl!,
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.fastfood,
-                                color: Colors.grey, size: 40),
-                      )
-                    : const Icon(
-                        Icons.fastfood,
-                        color: Colors.grey,
-                        size: 40,
-                      ),
               ),
             ),
             // Details

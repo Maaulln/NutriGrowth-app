@@ -51,13 +51,13 @@ class UserService {
 
       final errorMsg = json['message'] as String? ??
           json['error'] as String? ??
-          'Terjadi kesalahan pada server.';
+          'A server error occurred.';
       throw UserServiceException(errorMsg);
     } on UserServiceException {
       rethrow;
     } catch (e) {
       throw const UserServiceException(
-        'Tidak dapat terhubung ke server. Pastikan server sedang berjalan.',
+        'Cannot connect to server. Ensure the server is running.',
       );
     }
   }
@@ -83,13 +83,13 @@ class UserService {
       }
 
       final errorMsg =
-          (json as Map)['message'] as String? ?? 'Gagal mengambil data user.';
+          (json as Map)['message'] as String? ?? 'Failed to fetch user data.';
       throw UserServiceException(errorMsg);
     } on UserServiceException {
       rethrow;
     } catch (e) {
       throw const UserServiceException(
-        'Tidak dapat terhubung ke server. Pastikan server sedang berjalan.',
+        'Cannot connect to server. Ensure the server is running.',
       );
     }
   }

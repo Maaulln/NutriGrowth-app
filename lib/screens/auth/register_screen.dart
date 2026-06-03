@@ -26,15 +26,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final passwordConfirm = _passwordConfirmController.text;
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      _showError('Semua kolom wajib diisi.');
+      _showError('All fields are required.');
       return;
     }
     if (password != passwordConfirm) {
-      _showError('Konfirmasi password tidak cocok.');
+      _showError('Password confirmation does not match.');
       return;
     }
     if (password.length < 8) {
-      _showError('Password minimal 8 karakter.');
+      _showError('Password must be at least 8 characters.');
       return;
     }
 
@@ -152,7 +152,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 20),
               _buildTextField(
                 controller: _passwordController,
-                label: 'Password (min 8 karakter)',
+                label: 'Password (min. 8 characters)',
                 icon: Icons.lock_outline,
                 obscureText: _obscurePassword,
                 suffixIcon: IconButton(
@@ -170,7 +170,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               const SizedBox(height: 20),
               _buildTextField(
                 controller: _passwordConfirmController,
-                label: 'Konfirmasi Password',
+                label: 'Confirm Password',
                 icon: Icons.lock_outline,
                 obscureText: true,
               ),

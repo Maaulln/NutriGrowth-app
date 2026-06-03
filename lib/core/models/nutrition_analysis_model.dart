@@ -1,3 +1,5 @@
+import '../utils/food_image_helper.dart';
+
 /// Model request untuk endpoint analisis gizi AI.
 class NutritionAnalysisRequest {
   const NutritionAnalysisRequest({
@@ -69,14 +71,27 @@ class FoodRecommendationItem {
   final String reason;
   final String? imageUrl;
 
+  /// URL gambar efektif (AI/backend atau fallback Unsplash).
+  String get effectiveImageUrl => FoodImageHelper.resolveImageUrl(
+        imageUrl: imageUrl,
+        name: foodName,
+        category: category,
+      );
+
   factory FoodRecommendationItem.fromJson(Map<String, dynamic> json) {
+    final foodName = json['food_name'] as String? ?? '';
+    final category = json['category'] as String? ?? '';
     return FoodRecommendationItem(
-      foodName: json['food_name'] as String? ?? '',
-      category: json['category'] as String? ?? '',
+      foodName: foodName,
+      category: category,
       servingSize: json['serving_size'] as String? ?? '',
       estimatedPrice: json['estimated_price'] as int? ?? 0,
       reason: json['reason'] as String? ?? '',
-      imageUrl: json['image_url'] as String?,
+      imageUrl: FoodImageHelper.resolveImageUrl(
+        imageUrl: json['image_url'] as String?,
+        name: foodName,
+        category: category,
+      ),
     );
   }
 }
@@ -127,14 +142,14 @@ class NutritionAnalysisResult {
     final statusGizi = json['status_gizi'];
     final status = statusGizi is String && statusGizi.trim().isNotEmpty
         ? statusGizi
-        : 'Status tidak tersedia';
+        : 'Status unavailable';
 
     final treatmentList = json['treatment_recommendations'];
     final String recommendation;
     if (treatmentList is List && treatmentList.isNotEmpty) {
       recommendation = '• ${treatmentList.join('\n• ')}';
     } else {
-      recommendation = 'Rekomendasi tidak tersedia dari server.';
+      recommendation = 'Recommendations unavailable from server.';
     }
 
     final analysisList = json['analysis'];

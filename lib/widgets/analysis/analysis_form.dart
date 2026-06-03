@@ -61,15 +61,14 @@ class AnalysisForm extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Data Antropometri ──────────────────────────────────────────
-            _sectionTitle('Data Anak'),
+            _sectionTitle('Child Data'),
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
               value: selectedGender,
-              decoration: _inputDeco('Jenis Kelamin'),
+              decoration: _inputDeco('Gender'),
               items: const [
-                DropdownMenuItem(value: 1, child: Text('Laki-laki')),
-                DropdownMenuItem(value: 0, child: Text('Perempuan')),
+                DropdownMenuItem(value: 1, child: Text('Male')),
+                DropdownMenuItem(value: 0, child: Text('Female')),
               ],
               onChanged: isAnalyzing
                   ? null
@@ -79,49 +78,47 @@ class AnalysisForm extends StatelessWidget {
             CustomInputField(
               controller: ageController,
               icon: Icons.child_care_rounded,
-              label: 'Usia',
-              unit: '(bulan)',
-              placeholder: 'cth. 18',
+              label: 'Age',
+              unit: '(months)',
+              placeholder: 'e.g. 18',
             ),
             const SizedBox(height: 14),
             CustomInputField(
               controller: weightController,
               icon: Icons.monitor_weight_outlined,
-              label: 'Berat Badan',
+              label: 'Weight',
               unit: '(kg)',
-              placeholder: 'cth. 10.2',
+              placeholder: 'e.g. 10.2',
             ),
             const SizedBox(height: 14),
             CustomInputField(
               controller: heightController,
               icon: Icons.height_rounded,
-              label: 'Tinggi Badan',
+              label: 'Height',
               unit: '(cm)',
-              placeholder: 'cth. 78.5',
+              placeholder: 'e.g. 78.5',
             ),
             const SizedBox(height: 14),
             CustomInputField(
               controller: muacController,
               icon: Icons.accessibility_new_rounded,
-              label: 'MUAC (opsional)',
+              label: 'MUAC (optional)',
               unit: '(cm)',
-              placeholder: 'cth. 13.2',
+              placeholder: 'e.g. 13.2',
             ),
 
             const SizedBox(height: 20),
             _divider(),
             const SizedBox(height: 16),
 
-            // ── Riwayat Gizi ───────────────────────────────────────────────
-            _sectionTitle('Riwayat Gizi'),
+            _sectionTitle('Nutrition History'),
             const SizedBox(height: 12),
 
-            // ASI Eksklusif
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'ASI Eksklusif (0–6 bulan)',
+                  'Exclusive Breastfeeding (0–6 months)',
                   style: TextStyle(fontSize: 14, color: Color(0xFF555555)),
                 ),
                 Switch(
@@ -133,27 +130,25 @@ class AnalysisForm extends StatelessWidget {
             ),
             const SizedBox(height: 14),
 
-            // Suplemen
             DropdownButtonFormField<String>(
               value: supplementIntake,
-              decoration: _inputDeco('Suplemen / Vitamin'),
+              decoration: _inputDeco('Supplements / Vitamins'),
               items: const [
-                DropdownMenuItem(value: 'regular',   child: Text('Rutin')),
-                DropdownMenuItem(value: 'irregular', child: Text('Tidak Rutin')),
-                DropdownMenuItem(value: 'none',      child: Text('Tidak Ada')),
+                DropdownMenuItem(value: 'regular',   child: Text('Regular')),
+                DropdownMenuItem(value: 'irregular', child: Text('Irregular')),
+                DropdownMenuItem(value: 'none',      child: Text('None')),
               ],
               onChanged: isAnalyzing ? null : (v) { if (v != null) onSupplementChanged(v); },
             ),
             const SizedBox(height: 14),
 
-            // Frekuensi sakit
             DropdownButtonFormField<String>(
               value: illnessFrequency,
-              decoration: _inputDeco('Frekuensi Sakit'),
+              decoration: _inputDeco('Illness Frequency'),
               items: const [
-                DropdownMenuItem(value: 'low',    child: Text('Rendah')),
-                DropdownMenuItem(value: 'medium', child: Text('Sedang')),
-                DropdownMenuItem(value: 'high',   child: Text('Tinggi')),
+                DropdownMenuItem(value: 'low',    child: Text('Low')),
+                DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                DropdownMenuItem(value: 'high',   child: Text('High')),
               ],
               onChanged: isAnalyzing ? null : (v) { if (v != null) onIllnessChanged(v); },
             ),
@@ -162,21 +157,19 @@ class AnalysisForm extends StatelessWidget {
             _divider(),
             const SizedBox(height: 16),
 
-            // ── Alergi ────────────────────────────────────────────────────
-            _sectionTitle('Alergi (Opsional)'),
+            _sectionTitle('Allergies (Optional)'),
             const SizedBox(height: 12),
             TextFormField(
               controller: allergiesController,
               enabled: !isAnalyzing,
-              decoration: _inputDeco('cth. susu, telur, ikan').copyWith(
+              decoration: _inputDeco('e.g. milk, egg, fish').copyWith(
                 prefixIcon: const Icon(Icons.warning_amber_rounded, color: _green),
-                helperText: 'Pisahkan dengan koma',
+                helperText: 'Separate with commas',
               ),
             ),
 
             const SizedBox(height: 24),
 
-            // ── Tombol Analisis ────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -205,7 +198,7 @@ class AnalysisForm extends StatelessWidget {
                           Icon(Icons.analytics_outlined, size: 18, color: Colors.white),
                           SizedBox(width: 8),
                           Text(
-                            'Analisis Sekarang',
+                            'Analyze Now',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                         ],

@@ -78,14 +78,14 @@ class Child {
     final months = totalMonths % 12;
 
     if (years > 0) {
-      return '$years tahun $months bulan';
+      return '$years years $months months';
     }
-    return '$months bulan';
+    return '$months months';
   }
 
   /// Mengembalikan label gender yang ramah tampilan berdasarkan nilai database.
   String get genderLabel {
-    return gender == 'male' ? 'Laki-laki' : 'Perempuan';
+    return gender == 'male' ? 'Male' : 'Female';
   }
 
   /// Menandai apakah data anak adalah laki-laki.

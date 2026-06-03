@@ -89,7 +89,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
     if (!_formKey.currentState!.validate() || _selectedDate == null) {
       if (_selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Silakan pilih tanggal lahir')),
+          const SnackBar(content: Text('Please select date of birth')),
         );
       }
       return;
@@ -105,7 +105,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
       if ((_weightController.text.trim().isNotEmpty && weightKg == null) ||
           (_heightController.text.trim().isNotEmpty && heightCm == null) ||
           (_muacController.text.trim().isNotEmpty && muacCm == null)) {
-        throw Exception('Berat, tinggi, dan MUAC harus berupa angka valid.');
+        throw Exception('Weight, height, and MUAC must be valid numbers.');
       }
 
       final child = Child(
@@ -132,8 +132,8 @@ class _AddChildScreenState extends State<AddChildScreen> {
           SnackBar(
             content: Text(
               _isEditMode
-                  ? 'Data anak berhasil diperbarui'
-                  : 'Data anak berhasil ditambahkan',
+                  ? 'Child data updated successfully'
+                  : 'Child data added successfully',
             ),
           ),
         );
@@ -142,7 +142,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
       if (mounted) {
         final message = e is Exception
             ? e.toString().replaceFirst('Exception: ', '')
-            : 'Terjadi kesalahan, silakan coba lagi';
+            : 'An error occurred, please try again';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
         );
@@ -157,7 +157,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAF9),
       appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Data Anak' : 'Tambah Data Anak'),
+        title: Text(_isEditMode ? 'Edit Child' : 'Add Child'),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: const Color(0xFF1A2E2A),
@@ -170,7 +170,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Informasi Anak',
+                'Child Information',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -179,21 +179,21 @@ class _AddChildScreenState extends State<AddChildScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Lengkapi data di bawah untuk memantau tumbuh kembang anak.',
+                'Complete the information below to monitor your child\'s growth.',
                 style: TextStyle(color: Colors.grey[600]),
               ),
               const SizedBox(height: 32),
 
               // Nama
               const Text(
-                'Nama Lengkap',
+                'Full Name',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: 'Contoh: Ahmad Fauzan',
+                  hintText: 'e.g. Ahmad Fauzan',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -202,26 +202,26 @@ class _AddChildScreenState extends State<AddChildScreen> {
                   ),
                 ),
                 validator: (v) =>
-                    v == null || v.isEmpty ? 'Nama tidak boleh kosong' : null,
+                    v == null || v.isEmpty ? 'Name cannot be empty' : null,
               ),
               const SizedBox(height: 20),
 
               // Gender
               const Text(
-                'Jenis Kelamin',
+                'Gender',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
                   Expanded(
-                    child: _buildGenderOption('male', 'Laki-laki', Icons.boy),
+                    child: _buildGenderOption('male', 'Male', Icons.boy),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: _buildGenderOption(
                       'female',
-                      'Perempuan',
+                      'Female',
                       Icons.girl,
                     ),
                   ),
@@ -231,7 +231,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
 
               // Tanggal Lahir
               const Text(
-                'Tanggal Lahir',
+                'Date of Birth',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -256,7 +256,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                       const SizedBox(width: 12),
                       Text(
                         _selectedDate == null
-                            ? 'Pilih Tanggal'
+                            ? 'Select Date'
                             : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
                         style: TextStyle(
                           color: _selectedDate == null
@@ -271,7 +271,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
               const SizedBox(height: 20),
 
               const Text(
-                'Berat Badan (kg)',
+                'Weight (kg)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -281,7 +281,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Contoh: 12.5',
+                  hintText: 'e.g. 12.5',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -293,7 +293,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
               const SizedBox(height: 20),
 
               const Text(
-                'Tinggi Badan (cm)',
+                'Height (cm)',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -303,7 +303,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Contoh: 89.0',
+                  hintText: 'e.g. 89.0',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -325,7 +325,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                   decimal: true,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Contoh: 14.2',
+                  hintText: 'e.g. 14.2',
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -353,7 +353,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
-                          _isEditMode ? 'Update Data Anak' : 'Simpan Data Anak',
+                          _isEditMode ? 'Update Child' : 'Save Child',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

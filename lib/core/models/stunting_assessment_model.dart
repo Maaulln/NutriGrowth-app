@@ -45,15 +45,15 @@ class StuntingAssessmentSummary {
   String get statusLabel {
     switch ((statusGizi ?? '').toLowerCase()) {
       case 'severely stunted':
-        return 'Sangat Pendek';
+        return 'Severely Stunted';
       case 'stunted':
-        return 'Pendek (Stunted)';
+        return 'Stunted';
       case 'normal':
         return 'Normal';
       case 'tinggi':
-        return 'Tinggi';
+        return 'Tall';
       default:
-        return riskLevel == 'low' ? 'Normal' : riskLevel == 'medium' ? 'Perlu Perhatian' : 'Berisiko';
+        return riskLevel == 'low' ? 'Normal' : riskLevel == 'medium' ? 'Needs Attention' : 'At Risk';
     }
   }
 }

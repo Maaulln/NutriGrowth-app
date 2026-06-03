@@ -67,15 +67,15 @@ class NutritionAiService {
       rethrow;
     } on SocketException {
       throw const NutritionAiException(
-        'Tidak dapat terhubung ke server AI. Pastikan HP dan laptop satu jaringan WiFi dan server AI (port 8000) sedang berjalan.',
+        'Cannot connect to AI server. Ensure your phone and laptop are on the same WiFi network and the AI server (port 8000) is running.',
       );
     } on TimeoutException {
       throw const NutritionAiException(
-        'Server AI tidak merespons. Pastikan nutrigrowth-ai sedang berjalan.',
+        'AI server is not responding. Ensure nutrigrowth-ai is running.',
       );
     } catch (_) {
       throw const NutritionAiException(
-        'Tidak dapat terhubung ke server AI. Pastikan server AI berjalan di port 8000.',
+        'Cannot connect to AI server. Ensure the AI server is running on port 8000.',
       );
     }
   }
@@ -107,7 +107,7 @@ class NutritionAiService {
         if (val is String && val.trim().isNotEmpty) return val;
       }
     }
-    return 'Terjadi kesalahan saat memproses analisis gizi.';
+    return 'An error occurred while processing nutrition analysis.';
   }
 
   /// Mengambil assessment terbaru untuk anak tertentu.
