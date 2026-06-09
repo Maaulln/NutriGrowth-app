@@ -64,7 +64,7 @@ class AnalysisForm extends StatelessWidget {
             _sectionTitle('Child Data'),
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
-              value: selectedGender,
+              initialValue: selectedGender,
               decoration: _inputDeco('Gender'),
               items: const [
                 DropdownMenuItem(value: 1, child: Text('Male')),
@@ -124,14 +124,14 @@ class AnalysisForm extends StatelessWidget {
                 Switch(
                   value: exclusiveBreastfeeding,
                   onChanged: isAnalyzing ? null : onBreastfeedingChanged,
-                  activeColor: _green,
+                  activeThumbColor: _green,
                 ),
               ],
             ),
             const SizedBox(height: 14),
 
             DropdownButtonFormField<String>(
-              value: supplementIntake,
+              initialValue: supplementIntake,
               decoration: _inputDeco('Supplements / Vitamins'),
               items: const [
                 DropdownMenuItem(value: 'regular',   child: Text('Regular')),
@@ -143,7 +143,7 @@ class AnalysisForm extends StatelessWidget {
             const SizedBox(height: 14),
 
             DropdownButtonFormField<String>(
-              value: illnessFrequency,
+              initialValue: illnessFrequency,
               decoration: _inputDeco('Illness Frequency'),
               items: const [
                 DropdownMenuItem(value: 'low',    child: Text('Low')),

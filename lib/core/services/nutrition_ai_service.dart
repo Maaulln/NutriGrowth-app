@@ -40,17 +40,18 @@ class NutritionAiService {
     };
   }
 
-  /// Mengirim data antropometri langsung ke local AI server (nutrigrowth-ai).
+  /// Mengirim data antropometri langsung ke AI server.
   Future<NutritionAnalysisResult> analyzeNutrition(
     NutritionAnalysisRequest request,
   ) async {
     final uri = ApiService.buildAiUri(ApiService.nutritionAnalyzePath);
 
     try {
+      final headers = await _getAuthHeaders();
       final response = await _client
           .post(
             uri,
-            headers: ApiService.aiHeaders(withAuth: false),
+            headers: headers,
             body: jsonEncode(request.toJson()),
           )
           .timeout(const Duration(seconds: 30));
@@ -67,15 +68,15 @@ class NutritionAiService {
       rethrow;
     } on SocketException {
       throw const NutritionAiException(
-        'Cannot connect to AI server. Ensure your phone and laptop are on the same WiFi network and the AI server (port 8000) is running.',
+        'Cannot connect to server. Ensure your phone and the server are on the same network.',
       );
     } on TimeoutException {
       throw const NutritionAiException(
-        'AI server is not responding. Ensure nutrigrowth-ai is running.',
+        'Server is not responding. Please try again.',
       );
     } catch (_) {
       throw const NutritionAiException(
-        'Cannot connect to AI server. Ensure the AI server is running on port 8000.',
+        'Cannot connect to server. Please check your connection.',
       );
     }
   }

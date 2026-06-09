@@ -8,6 +8,10 @@ class Child {
   final double? weightKg;
   final double? heightCm;
   final double? muacCm;
+  final List<String> allergies;
+  final bool exclusiveBreastfeeding;
+  final String supplementIntake;
+  final String illnessFrequency;
 
   Child({
     this.id,
@@ -19,6 +23,10 @@ class Child {
     this.weightKg,
     this.heightCm,
     this.muacCm,
+    this.allergies = const [],
+    this.exclusiveBreastfeeding = true,
+    this.supplementIntake = 'none',
+    this.illnessFrequency = 'low',
   });
 
   /// Mengubah nilai dinamis dari JSON menjadi `double?` yang aman.
@@ -40,6 +48,14 @@ class Child {
     final dynamic birthDateValue = json['birth_date'];
     final dynamic imageUrlValue = json['image_url'];
 
+    final rawAllergies = json['allergies'];
+    List<String> allergies = [];
+    if (rawAllergies is List) {
+      allergies = rawAllergies.map((e) => e.toString()).toList();
+    } else if (rawAllergies is String && rawAllergies.isNotEmpty) {
+      allergies = rawAllergies.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+    }
+
     return Child(
       id: idValue is int ? idValue : int.tryParse(idValue?.toString() ?? ''),
       userId: userIdValue is int
@@ -52,6 +68,10 @@ class Child {
       weightKg: _parseNullableDouble(json['weight_kg']),
       heightCm: _parseNullableDouble(json['height_cm']),
       muacCm: _parseNullableDouble(json['muac_cm']),
+      allergies: allergies,
+      exclusiveBreastfeeding: json['exclusive_breastfeeding'] == true || json['exclusive_breastfeeding'] == 1,
+      supplementIntake: json['supplement_intake']?.toString() ?? 'none',
+      illnessFrequency: json['illness_frequency']?.toString() ?? 'low',
     );
   }
 
@@ -64,6 +84,10 @@ class Child {
       if (weightKg != null) 'weight_kg': weightKg,
       if (heightCm != null) 'height_cm': heightCm,
       if (muacCm != null) 'muac_cm': muacCm,
+      'allergies': allergies,
+      'exclusive_breastfeeding': exclusiveBreastfeeding,
+      'supplement_intake': supplementIntake,
+      'illness_frequency': illnessFrequency,
     };
   }
 

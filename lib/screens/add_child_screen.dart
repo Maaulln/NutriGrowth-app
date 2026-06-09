@@ -17,8 +17,12 @@ class _AddChildScreenState extends State<AddChildScreen> {
   final _weightController = TextEditingController();
   final _heightController = TextEditingController();
   final _muacController = TextEditingController();
+  final _allergiesController = TextEditingController();
   DateTime? _selectedDate;
   String _selectedGender = 'male';
+  bool _exclusiveBreastfeeding = true;
+  String _supplementIntake = 'none';
+  String _illnessFrequency = 'low';
   bool _isLoading = false;
 
   bool get _isEditMode => widget.initialChild != null;
@@ -40,6 +44,12 @@ class _AddChildScreenState extends State<AddChildScreen> {
       if (child.muacCm != null) {
         _muacController.text = child.muacCm!.toStringAsFixed(1);
       }
+      if (child.allergies.isNotEmpty) {
+        _allergiesController.text = child.allergies.join(', ');
+      }
+      _exclusiveBreastfeeding = child.exclusiveBreastfeeding;
+      _supplementIntake = child.supplementIntake;
+      _illnessFrequency = child.illnessFrequency;
     }
   }
 
@@ -49,6 +59,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
     _weightController.dispose();
     _heightController.dispose();
     _muacController.dispose();
+    _allergiesController.dispose();
     super.dispose();
   }
 
@@ -108,6 +119,12 @@ class _AddChildScreenState extends State<AddChildScreen> {
         throw Exception('Weight, height, and MUAC must be valid numbers.');
       }
 
+      final allergies = _allergiesController.text
+          .split(',')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+
       final child = Child(
         id: widget.initialChild?.id,
         userId: widget.initialChild?.userId ?? 0,
@@ -117,6 +134,10 @@ class _AddChildScreenState extends State<AddChildScreen> {
         weightKg: weightKg,
         heightCm: heightCm,
         muacCm: muacCm,
+        allergies: allergies,
+        exclusiveBreastfeeding: _exclusiveBreastfeeding,
+        supplementIntake: _supplementIntake,
+        illnessFrequency: _illnessFrequency,
       );
 
       final savedChild = _isEditMode
@@ -335,6 +356,107 @@ class _AddChildScreenState extends State<AddChildScreen> {
                 ),
               ),
 
+              const SizedBox(height: 28),
+              const Divider(color: Color(0xFFE8F5EE)),
+              const SizedBox(height: 20),
+
+              const Text(
+                'Nutrition History',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF4CAF82),
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Exclusive Breastfeeding (0–6 months)',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  Switch(
+                    value: _exclusiveBreastfeeding,
+                    onChanged: (v) =>
+                        setState(() => _exclusiveBreastfeeding = v),
+                    activeThumbColor: const Color(0xFF4CAF82),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              const Text(
+                'Supplements / Vitamins',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildDropdown<String>(
+                value: _supplementIntake,
+                items: const [
+                  DropdownMenuItem(value: 'regular', child: Text('Regular')),
+                  DropdownMenuItem(value: 'irregular', child: Text('Irregular')),
+                  DropdownMenuItem(value: 'none', child: Text('None')),
+                ],
+                onChanged: (v) {
+                  if (v != null) setState(() => _supplementIntake = v);
+                },
+              ),
+              const SizedBox(height: 16),
+
+              const Text(
+                'Illness Frequency',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildDropdown<String>(
+                value: _illnessFrequency,
+                items: const [
+                  DropdownMenuItem(value: 'low', child: Text('Low')),
+                  DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                  DropdownMenuItem(value: 'high', child: Text('High')),
+                ],
+                onChanged: (v) {
+                  if (v != null) setState(() => _illnessFrequency = v);
+                },
+              ),
+
+              const SizedBox(height: 20),
+              const Divider(color: Color(0xFFE8F5EE)),
+              const SizedBox(height: 20),
+
+              const Text(
+                'Allergies (Optional)',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF4CAF82),
+                  letterSpacing: 0.4,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _allergiesController,
+                decoration: InputDecoration(
+                  hintText: 'e.g. milk, egg, fish',
+                  helperText: 'Separate with commas',
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Color(0xFF4CAF82),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 48),
 
               SizedBox(
@@ -364,6 +486,27 @@ class _AddChildScreenState extends State<AddChildScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildDropdown<T>({
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: DropdownButton<T>(
+        value: value,
+        isExpanded: true,
+        underline: const SizedBox.shrink(),
+        items: items,
+        onChanged: onChanged,
       ),
     );
   }

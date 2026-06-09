@@ -65,9 +65,17 @@ class _AnalysisScreenState extends ConsumerState<AnalysisScreen> {
       _muacController.clear();
     }
 
+    if (child.allergies.isNotEmpty) {
+      _allergiesController.text = child.allergies.join(', ');
+    } else {
+      _allergiesController.clear();
+    }
+
     final notifier = ref.read(analysisProvider.notifier);
     notifier.setGender(child.isMale ? 1 : 0);
-    notifier.setBreastfeeding(child.ageInMonths <= 6);
+    notifier.setBreastfeeding(child.exclusiveBreastfeeding);
+    notifier.setSupplement(child.supplementIntake);
+    notifier.setIllness(child.illnessFrequency);
   }
 
   @override

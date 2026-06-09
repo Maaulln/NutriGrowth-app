@@ -1,8 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../core/models/food_model.dart';
 import '../../core/models/nutrition_analysis_model.dart';
 import '../../core/services/food_service.dart';
 import '../../screens/food_detail_screen.dart';
+import '../food/food_network_image.dart';
 
 class FoodRecommendationsSection extends StatelessWidget {
   const FoodRecommendationsSection({
@@ -70,14 +71,34 @@ class _FoodRecommendationCard extends StatefulWidget {
 
 class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
   bool _tapping = false;
+  Food? _dbFood;
+
+  /// Memuat detail data makanan dari database backend berdasarkan nama makanan.
+  ///
+  /// Melakukan pencarian menggunakan [FoodService] dengan batas retry dan timeout lebih pendek.
+  Future<Food?> _loadDbFood() async {
+    if (_dbFood != null) return _dbFood;
+    try {
+      final results = await FoodService.instance.getFoods(
+        search: widget.item.foodName,
+        maxRetries: 2,
+        timeoutDuration: const Duration(seconds: 3),
+      );
+      if (results.isNotEmpty) {
+        _dbFood = results.first;
+        return _dbFood;
+      }
+    } catch (_) {}
+    return null;
+  }
 
   Future<void> _onTap() async {
     setState(() => _tapping = true);
     try {
-      final results = await FoodService.instance.getFoods(search: widget.item.foodName);
+      final food = await _loadDbFood();
       if (!mounted) return;
-      final food = results.isNotEmpty ? results.first : null;
       if (food != null) {
+        if (mounted && _dbFood != null) setState(() {});
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => FoodDetailScreen(food: food)),
@@ -100,6 +121,9 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
       if (mounted) setState(() => _tapping = false);
     }
   }
+
+  String get _imageUrl =>
+      _dbFood?.effectiveImageUrl ?? widget.item.effectiveImageUrl;
 
   FoodRecommendationItem get item => widget.item;
 
@@ -128,16 +152,13 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Gambar makanan
-          ClipRRect(
+          FoodNetworkImage(
+            imageUrl: _imageUrl,
+            width: 90,
+            height: 90,
             borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
-            child: CachedNetworkImage(
-              imageUrl: item.effectiveImageUrl,
-              width: 90,
-              height: 90,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => _imagePlaceholder(),
-              errorWidget: (context, url, error) => _imagePlaceholder(),
-            ),
+            placeholderIcon: Icons.restaurant,
+            placeholderIconSize: 32,
           ),
           // Detail makanan
           Expanded(
@@ -214,15 +235,6 @@ class _FoodRecommendationCardState extends State<_FoodRecommendationCard> {
       ),
         ),
       ),
-    );
-  }
-
-  Widget _imagePlaceholder() {
-    return Container(
-      width: 90,
-      height: 90,
-      color: const Color(0xFFE8F5EE),
-      child: const Icon(Icons.restaurant, color: Color(0xFF4CAF82), size: 32),
     );
   }
 

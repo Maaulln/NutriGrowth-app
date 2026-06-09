@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
@@ -42,25 +45,56 @@ class ChildService {
     };
   }
 
-  Future<List<Child>> getChildren() async {
+  /// Mengambil daftar anak dari backend dengan retry logic dan timeout.
+  ///
+  /// [maxRetries] - Jumlah maksimal percobaan jika terjadi masalah jaringan (default: 3).
+  /// [timeoutDuration] - Batas waktu timeout untuk setiap request (default: 10 detik).
+  Future<List<Child>> getChildren({
+    int maxRetries = 3,
+    Duration timeoutDuration = const Duration(seconds: 10),
+  }) async {
     final uri = Uri.parse('${ApiService.baseUrl}/children');
+    int attempts = 0;
 
-    try {
-      final headers = await _getAuthHeaders();
-      final response = await _client.get(uri, headers: headers);
+    while (attempts < maxRetries) {
+      attempts++;
+      try {
+        if (attempts > 1) {
+          debugPrint('Mencoba kembali mengambil data anak (Percobaan $attempts/$maxRetries)...');
+        }
+        final headers = await _getAuthHeaders();
+        final response = await _client
+            .get(uri, headers: headers)
+            .timeout(timeoutDuration);
 
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        final List data = jsonResponse['data'];
-        return data.map((child) => Child.fromJson(child)).toList();
-      } else {
-        throw Exception('Failed to fetch child data');
+        if (response.statusCode == 200) {
+          final jsonResponse = jsonDecode(response.body);
+          final List data = jsonResponse['data'];
+          return data.map((child) => Child.fromJson(child)).toList();
+        } else {
+          throw Exception('Failed to fetch child data (${response.statusCode})');
+        }
+      } on SocketException {
+        if (attempts >= maxRetries) {
+          throw Exception('No internet connection. Check your network.');
+        }
+        await Future.delayed(Duration(milliseconds: 500 * attempts));
+      } on TimeoutException {
+        if (attempts >= maxRetries) {
+          throw Exception('Server took too long to respond. Try again.');
+        }
+        await Future.delayed(Duration(milliseconds: 500 * attempts));
+      } catch (e) {
+        if (attempts >= maxRetries) {
+          throw Exception('An error occurred: $e');
+        }
+        await Future.delayed(Duration(milliseconds: 500 * attempts));
       }
-    } catch (e) {
-      throw Exception('An error occurred: $e');
     }
+    throw Exception('Failed to fetch child data. Try again.');
   }
 
+  /// Menambahkan data anak baru dengan timeout.
   Future<Child> addChild(Child child) async {
     final uri = Uri.parse('${ApiService.baseUrl}/children');
 
@@ -70,7 +104,7 @@ class ChildService {
         uri,
         headers: headers,
         body: jsonEncode(child.toJson()),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201) {
         final jsonResponse = jsonDecode(response.body);
@@ -84,6 +118,7 @@ class ChildService {
     }
   }
 
+  /// Memperbarui data anak dengan timeout.
   Future<Child> updateChild(int id, Child child) async {
     final uri = Uri.parse('${ApiService.baseUrl}/children/$id');
 
@@ -93,7 +128,7 @@ class ChildService {
         uri,
         headers: headers,
         body: jsonEncode(child.toJson()),
-      );
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
@@ -106,12 +141,15 @@ class ChildService {
     }
   }
 
+  /// Menghapus data anak dengan timeout.
   Future<void> deleteChild(int id) async {
     final uri = Uri.parse('${ApiService.baseUrl}/children/$id');
 
     try {
       final headers = await _getAuthHeaders();
-      final response = await _client.delete(uri, headers: headers);
+      final response = await _client
+          .delete(uri, headers: headers)
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode != 200) {
         throw Exception('Failed to delete child data');

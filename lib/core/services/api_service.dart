@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Konfigurasi base URL untuk setiap platform.
 ///
 /// Untuk production, set URL via --dart-define saat build:
@@ -18,19 +16,16 @@ class ApiService {
   );
   static const String _apiKeyEnv = String.fromEnvironment('API_KEY');
 
-  /// Base URL untuk backend (Spring Boot / REST API).
+  /// Base URL untuk backend REST API.
   ///
   /// Prioritas:
   /// 1. --dart-define=NUTRIGROWTH_BACKEND_HOST=https://...
-  /// 2. Fallback lokal (development only)
+  /// 2. Fallback: public backend server at 13.213.1.155:8000
   static String get baseUrl {
     if (_backendHostEnv.isNotEmpty) {
       return '$_backendHostEnv/api';
     }
-    if (kIsWeb) {
-      return 'http://localhost:8080/api';
-    }
-    return 'http://192.168.110.230:8080/api';
+    return 'http://13.213.1.155:8000/api';
   }
 
   /// Path endpoint analisis gizi di AI service lokal (nutrigrowth-ai).
@@ -40,21 +35,12 @@ class ApiService {
   ///
   /// Prioritas:
   /// 1. --dart-define=NUTRIGROWTH_API_HOST=https://...
-  /// 2. Web: localhost:8000
-  /// 3. Mobile dev: host yang sama dengan backend, port 8000
+  /// 2. Fallback: public AI server at 13.54.38.203:8000
   static String get aiBaseUrl {
     if (_aiHostEnv.isNotEmpty) {
       return _aiHostEnv;
     }
-    if (kIsWeb) {
-      return 'http://localhost:8000';
-    }
-    final backendUri = Uri.parse(baseUrl);
-    return Uri(
-      scheme: backendUri.scheme,
-      host: backendUri.host,
-      port: 8000,
-    ).toString();
+    return 'http://13.54.38.203:8000';
   }
 
   /// API key opsional yang dikirim sebagai Bearer token.
